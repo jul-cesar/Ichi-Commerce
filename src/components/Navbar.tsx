@@ -19,7 +19,7 @@ import SearchDialog from "./SearchDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 const signIn = async () => {
-  const data = await authClient.signIn.social({
+  await authClient.signIn.social({
     provider: "google",
   });
 };

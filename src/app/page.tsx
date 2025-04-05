@@ -12,7 +12,6 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 
-// Featured products data
 const featuredProducts = [
   {
     id: "1",
