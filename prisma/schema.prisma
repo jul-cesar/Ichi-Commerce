@@ -12,6 +12,7 @@ model User {
   id            String    @id @default(uuid())
   email         String    @unique
   name          String?
+  role          String?   @default("user")
   emailVerified Boolean
   image         String?
   createdAt     DateTime
@@ -65,4 +66,72 @@ model Verification {
   updatedAt  DateTime?
 
   @@map("verification")
+}
+
+// schema.prisma
+
+model Producto {
+  id              String                    @id @default(cuid())
+  nombre          String
+  precio          Float // Cambié Decimal por Float para SQLite
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  categoriaId     String
+  categoria       Categoria                 @relation(fields: [categoriaId], references: [id])
+  imagenPrincipal String
+  variaciones     VariacionProducto[]
+  imagenes        ImagenVariacionProducto[]
+}
+
+model Categoria {
+  id          String     @id @default(cuid())
+  nombre      String
+  descripcion String
+  img         String
+  productos   Producto[]
+}
+
+model ImagenVariacionProducto {
+  id          String            @id @default(cuid())
+  variacionId String
+  url         String
+  tipo        String // Puedes usar 'principal', 'secundaria', etc.
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  variacion   VariacionProducto @relation(fields: [variacionId], references: [id])
+  Producto    Producto?         @relation(fields: [productoId], references: [id])
+  productoId  String?
+}
+
+model VariacionProducto {
+  id         String                    @id @default(cuid())
+  productoId String
+  producto   Producto                  @relation(fields: [productoId], references: [id])
+  stock      Int
+  createdAt  DateTime                  @default(now())
+  updatedAt  DateTime                  @updatedAt
+  atributos  VariacionAtributo[]
+  imagenes   ImagenVariacionProducto[]
+}
+
+model VariacionAtributo {
+  id          String            @id @default(cuid())
+  variacionId String
+  nombre      String // Nombre del atributo (Ej. 'Color', 'Talla', 'Material', etc.)
+  valor       String // Valor de la variación (Ej. 'Rojo', 'M', 'Algodón', etc.)
+  variacion   VariacionProducto @relation(fields: [variacionId], references: [id])
+}
+
+model AtributoVariacion {
+  id             String           @id @default(cuid())
+  nombre         String // Nombre del atributo (Ej. 'Color', 'Talla', etc.)
+  descripcion    String
+  OpcionAtributo OpcionAtributo[]
+}
+
+model OpcionAtributo {
+  id         String            @id @default(cuid())
+  atributoId String
+  valor      String // Valor de la opción (Ej. 'Rojo', 'M', 'Algodón', etc.)
+  atributo   AtributoVariacion @relation(fields: [atributoId], references: [id])
 }
