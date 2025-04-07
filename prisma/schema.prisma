@@ -73,6 +73,7 @@ model Verification {
 model Producto {
   id              String                    @id @default(cuid())
   nombre          String
+  descripcion     String
   precio          Float // Cambié Decimal por Float para SQLite
   createdAt       DateTime                  @default(now())
   updatedAt       DateTime                  @updatedAt

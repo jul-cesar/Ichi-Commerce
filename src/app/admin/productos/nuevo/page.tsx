@@ -1,7 +1,10 @@
-import ProductForm from "@/components/admin/ProductForm";
-
-export const dynamic = "force-dynamic";
+import { ProductFormProvider } from "@/components/admin/multi-form/formContext";
+import ProductForm from "@/components/admin/multi-form/product-form";
 
 export default async function NewProductPage() {
-  return <ProductForm  />;
+  return (
+    <ProductFormProvider>
+      <ProductForm />
+    </ProductFormProvider>
+  );
 }

@@ -8,7 +8,11 @@ export const getCategories = async () => {
 };
 
 export const getAttributes = async () => {
-  return await prisma.atributoVariacion.findMany();
+  return await prisma.atributoVariacion.findMany({
+    include: {
+      OpcionAtributo: true,
+    },
+  });
 };
 
 export const crearCategoria = async (
@@ -52,6 +56,7 @@ export const crearAtributo = async (
     data: {
       descripcion: atributo.descripcion,
       nombre: atributo.nombre,
+
       OpcionAtributo: {
         create: atributo.OpcionAtributo.map((opcion) => ({
           valor: opcion.valor, // Agregar valor para cada opción

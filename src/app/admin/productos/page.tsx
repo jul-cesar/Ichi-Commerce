@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { Edit, MoreHorizontal, Plus, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,58 +15,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-// Example products data
-const products = [
-  {
-    id: "1",
-    name: "Camiseta Básica Algodón",
-    price: 49900,
-    category: "Camisetas",
-    stock: 25,
-    status: "active",
+import { Edit, MoreHorizontal, Plus, Trash } from "lucide-react";
+import Link from "next/link";
+import { prisma } from "../../../../db/instance";
+
+// Cargar productos con sus variaciones y atributos
+
+export const dynamic = "force-dynamic";
+
+const products = await prisma.producto.findMany({
+  include: {
+    categoria: true,
+    variaciones: {
+      include: {
+        atributos: true,
+      },
+    },
   },
-  {
-    id: "2",
-    name: "Jeans Slim Fit",
-    price: 129900,
-    category: "Pantalones",
-    stock: 12,
-    status: "active",
-  },
-  {
-    id: "3",
-    name: "Vestido Casual Verano",
-    price: 89900,
-    category: "Vestidos",
-    stock: 8,
-    status: "active",
-  },
-  {
-    id: "4",
-    name: "Zapatillas Urbanas",
-    price: 159900,
-    category: "Calzado",
-    stock: 4,
-    status: "active",
-  },
-  {
-    id: "5",
-    name: "Reloj Minimalista",
-    price: 199900,
-    category: "Accesorios",
-    stock: 3,
-    status: "active",
-  },
-  {
-    id: "6",
-    name: "Chaqueta Denim",
-    price: 179900,
-    category: "Camisetas",
-    stock: 0,
-    status: "inactive",
-  },
-];
+});
 
 export default function ProductsPage() {
   return (
@@ -90,7 +54,7 @@ export default function ProductsPage() {
               <TableHead>Nombre</TableHead>
               <TableHead>Categoría</TableHead>
               <TableHead>Precio</TableHead>
-              <TableHead>Stock</TableHead>
+              <TableHead>Variaciones</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
@@ -98,19 +62,41 @@ export default function ProductsPage() {
           <TableBody>
             {products.map((product) => (
               <TableRow key={product.id}>
-                <TableCell className="font-medium">{product.name}</TableCell>
-                <TableCell>{product.category}</TableCell>
-                <TableCell>${product.price.toLocaleString("es-CO")}</TableCell>
-                <TableCell>{product.stock}</TableCell>
+                <TableCell className="font-medium">{product.nombre}</TableCell>
+                <TableCell>{product.categoria.nombre}</TableCell>
+                <TableCell>${product.precio.toLocaleString("es-CO")}</TableCell>
+
+                {/* Variaciones y stock */}
                 <TableCell>
-                  <Badge
-                    variant={
-                      product.status === "active" ? "default" : "secondary"
-                    }
-                  >
-                    {product.status === "active" ? "Activo" : "Inactivo"}
-                  </Badge>
+                  {product.variaciones.length > 0 ? (
+                    product.variaciones.map((variacion) => (
+                      <div key={variacion.id}>
+                        <p className="font-semibold">
+                          {variacion.atributos
+                            .map(
+                              (atributo) =>
+                                `${atributo.valor}: ${atributo.nombre}`
+                            )
+                            .join(", ")}
+                        </p>
+                        <p>Stock: {variacion.stock}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <span>No hay variaciones disponibles</span>
+                  )}
                 </TableCell>
+
+                {/* Estado */}
+                <TableCell>
+                  {/* Puedes agregar lógica de estado aquí si corresponde */}
+                  {/* Ejemplo: */}
+                  {/* <Badge variant={product.estado === "activo" ? "default" : "secondary"}>
+                    {product.estado === "activo" ? "Activo" : "Inactivo"}
+                  </Badge> */}
+                </TableCell>
+
+                {/* Acciones */}
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
