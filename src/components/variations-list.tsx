@@ -8,9 +8,12 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Prisma } from "@prisma/client";
+import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Edit, Plus } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { getAttributes } from "./admin/actions";
+import { AddVariationModal } from "./admin/add-variations";
 
 type VariationsListProps = {
   product: Prisma.ProductoGetPayload<{
@@ -34,6 +37,11 @@ type VariationsListProps = {
 
 export function VariationsList({ product }: VariationsListProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  const { data: attributes } = useQuery({
+    queryFn: async () => await getAttributes(),
+    queryKey: ["attributes"],
+  });
 
   // Group attributes by type for better display
   const groupAttributesByType = (
@@ -84,12 +92,12 @@ export function VariationsList({ product }: VariationsListProps) {
           </span>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/admin/productos/${product.id}/variaciones/nueva`}>
+          <AddVariationModal attributes={attributes} productId={product.id}>
+            <Button variant="outline" size="sm" asChild>
               <Plus className="h-3 w-3 mr-1" />
               Añadir
-            </Link>
-          </Button>
+            </Button>
+          </AddVariationModal>
           <CollapsibleTrigger asChild>
             <Button variant="ghost" size="sm">
               {isOpen ? (

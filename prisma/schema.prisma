@@ -117,13 +117,12 @@ model VariacionProducto {
 
 model VariacionAtributo {
   id                  String             @id @default(uuid())
-  variacionId         String
   opcionAtributoId    String
   valorAtributo       OpcionAtributo     @relation(fields: [opcionAtributoId], references: [id])
   VariacionProducto   VariacionProducto? @relation(fields: [variacionProductoId], references: [id])
   variacionProductoId String?
 
-  @@unique([variacionId, opcionAtributoId]) // Asegura que no haya duplicados
+  @@unique([variacionProductoId, opcionAtributoId])
 }
 
 model AtributoVariacion {

@@ -5,7 +5,7 @@ import { prisma } from "../../../db/instance";
 import { ProductFormState } from "./multi-form/formContext";
 
 export const getCategories = async () => {
-  return await prisma.categoria.findMany();
+  return await prisma.categoria.findMany({});
 };
 
 export const getAttributes = async () => {
@@ -112,7 +112,7 @@ export const guardarProducto = async (inputData: ProductFormState) => {
               await prisma.variacionAtributo.create({
                 data: {
                   variacionProductoId: variacionCreada.id,
-                  variacionId: variacionCreada.id,
+
                   opcionAtributoId: opcionAtributoId,
                 },
               });
@@ -130,4 +130,79 @@ export const guardarProducto = async (inputData: ProductFormState) => {
   );
 
   return producto;
+};
+
+export const editarProducto = async (
+  productId: string,
+  productData: Prisma.ProductoGetPayload<{
+    omit: {
+      id: true;
+      createdAt: true;
+      updatedAt: true;
+      imagenPrincipal: true;
+    };
+  }>
+) => {
+  await prisma.producto.update({
+    where: { id: productId },
+    data: productData,
+  });
+};
+
+export const createVariation = async (data: {
+  productoId: string;
+  atributos: {
+    attributeId: string;
+    valueId: string;
+  }[];
+  stock: number;
+}) => {
+  try {
+    const variacionExistente = await prisma.variacionProducto.findFirst({
+      where: {
+        AND: {
+          productoId: data.productoId,
+          atributos: {
+            some: {
+              opcionAtributoId: {
+                in: data.atributos.map((atributo) => atributo.valueId),
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (variacionExistente) {
+      return {
+        success: false,
+        error: "Ya existe una variación con estos atributos.",
+      };
+    }
+
+    const nuevaVariacion = await prisma.variacionProducto.create({
+      data: {
+        productoId: data.productoId,
+        stock: data.stock,
+      },
+    });
+
+    await prisma.variacionAtributo.createMany({
+      data: data.atributos.map((atributo) => ({
+        variacionProductoId: nuevaVariacion.id,
+        opcionAtributoId: atributo.valueId,
+      })),
+    });
+
+    return {
+      success: true,
+      variacionId: nuevaVariacion.id,
+    };
+  } catch (error) {
+    console.error("Error al crear la variación:", error);
+    return {
+      success: false,
+      error: "Hubo un problema al crear la variación.",
+    };
+  }
 };

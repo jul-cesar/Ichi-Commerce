@@ -5,13 +5,12 @@ import { prisma } from "../../../db/instance";
 
 export const dynamic = "force-dynamic"; // Enable dynamic rendering for this page
 
-const products = await prisma.producto.findMany({
-  include: {
-    categoria: true,
-  },
-});
-
-export default function ProductsPage() {
+export default async function ProductsPage() {
+  const products = await prisma.producto.findMany({
+    include: {
+      categoria: true,
+    },
+  });
   return (
     <main className="flex min-h-screen flex-col">
       {/* Banner Section */}
@@ -40,7 +39,7 @@ export default function ProductsPage() {
       {/* Products Grid */}
       <section className="container p-8">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {products.map((product) => (
+          {products?.map((product) => (
             <ProductCard
               key={product.id}
               id={product.id}

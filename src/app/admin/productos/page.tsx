@@ -16,26 +16,25 @@ import { prisma } from "../../../../db/instance";
 
 export const dynamic = "force-dynamic";
 
-const products = await prisma.producto.findMany({
-  include: {
-    categoria: true,
-    variaciones: {
-      include: {
-        atributos: {
-          include: {
-            valorAtributo: {
-              include: {
-                atributo: true,
+export default async function ProductsPage() {
+  const products = await prisma.producto.findMany({
+    include: {
+      categoria: true,
+      variaciones: {
+        include: {
+          atributos: {
+            include: {
+              valorAtributo: {
+                include: {
+                  atributo: true,
+                },
               },
             },
           },
         },
       },
     },
-  },
-});
-
-export default function ProductsPage() {
+  });
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -66,7 +65,7 @@ export default function ProductsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.map((product) => (
+            {products?.map((product) => (
               <TableRow key={product.id}>
                 <TableCell className="font-medium">{product.nombre}</TableCell>
                 <TableCell>

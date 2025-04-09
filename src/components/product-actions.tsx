@@ -17,10 +17,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useQuery } from "@tanstack/react-query";
 import { Edit, Eye, ListPlus, MoreHorizontal, Trash } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { getCategories } from "./admin/actions";
+import { EditProductModal } from "./admin/EditProductModal";
 
 type ProductActionsProps = {
   product: any; // Using any for simplicity, but you should define a proper type
@@ -29,6 +32,11 @@ type ProductActionsProps = {
 export function ProductActions({ product }: ProductActionsProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const router = useRouter();
+
+  const { data: categories } = useQuery({
+    queryFn: async () => await getCategories(),
+    queryKey: ["categories"],
+  });
 
   const handleDelete = async () => {
     try {
@@ -64,12 +72,15 @@ export function ProductActions({ product }: ProductActionsProps) {
           <DropdownMenuLabel>Acciones</DropdownMenuLabel>
           <DropdownMenuSeparator />
 
-          <DropdownMenuItem asChild>
-            <Link href={`/admin/productos/${product.id}/editar`}>
-              <Edit className="mr-2 h-4 w-4" />
-              Editar producto
-            </Link>
-          </DropdownMenuItem>
+          <EditProductModal
+            categories={categories}
+            product={product}
+            trigger={
+              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                <Edit /> Editar producto
+              </DropdownMenuItem>
+            }
+          />
 
           <DropdownMenuItem asChild>
             <Link href={`/admin/productos/${product.id}/variaciones`}>
