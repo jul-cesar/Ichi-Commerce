@@ -26,7 +26,7 @@ import { Prisma } from "@prisma/client";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { createVariation } from "./actions";
+import { toast } from "sonner";
 
 type Attribute =
   | Prisma.AtributoVariacionGetPayload<{
@@ -83,31 +83,13 @@ export function AddVariationModal({
       try {
         // Check if all attributes have been selected
         if (
-          attributes?.length > 0 &&
-          Object.keys(selectedAttributes).length < attributes?.length
+          (attributes?.length > 0 &&
+            Object.keys(selectedAttributes).length < attributes?.length) ||
+          stock === "" ||
+          "0"
         ) {
-          throw new Error("Debes seleccionar un valor para cada atributo");
+          toast("Asegurate de llenar todos los campos requeridos");
         }
-
-        // Prepare data for API
-        const data = {
-          productoId: productId,
-          atributos: Object.entries(selectedAttributes).map(
-            ([attributeId, valueId]) => ({
-              attributeId,
-              valueId,
-            })
-          ),
-          stock: Number(stock),
-        };
-
-        await createVariation(data); // Call the API to create the variation
-
-        // API call to create variation
-
-        // Close modal and refresh page
-        setOpen(false);
-        router.refresh();
       } catch (error) {
         console.error("Error:", error);
         // You could add toast notifications here
@@ -131,8 +113,8 @@ export function AddVariationModal({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
+          <Button className="flex items-center justify-center">
+            <Plus className="size-4" />
             Añadir variación
           </Button>
         )}

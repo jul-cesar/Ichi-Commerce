@@ -163,7 +163,7 @@ export const createVariation = async (data: {
         AND: {
           productoId: data.productoId,
           atributos: {
-            some: {
+            every: {
               opcionAtributoId: {
                 in: data.atributos.map((atributo) => atributo.valueId),
               },
