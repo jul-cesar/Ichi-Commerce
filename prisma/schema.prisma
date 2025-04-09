@@ -71,41 +71,41 @@ model Verification {
 // schema.prisma
 
 model Producto {
-  id              String                    @id @default(cuid())
+  id              String                    @id @default(uuid())
   nombre          String
-  descripcion     String
-  precio          Float // Cambié Decimal por Float para SQLite
+  descripcion     String?
+  precio          Float // o Decimal, según tu base de datos
   createdAt       DateTime                  @default(now())
   updatedAt       DateTime                  @updatedAt
   categoriaId     String
   categoria       Categoria                 @relation(fields: [categoriaId], references: [id])
-  imagenPrincipal String
+  imagenPrincipal String?
   variaciones     VariacionProducto[]
   imagenes        ImagenVariacionProducto[]
 }
 
 model Categoria {
-  id          String     @id @default(cuid())
+  id          String     @id @default(uuid())
   nombre      String
-  descripcion String
-  img         String
+  descripcion String?
+  img         String?
   productos   Producto[]
 }
 
 model ImagenVariacionProducto {
-  id          String            @id @default(cuid())
-  variacionId String
+  id          String             @id @default(uuid())
+  variacionId String?
   url         String
-  tipo        String // Puedes usar 'principal', 'secundaria', etc.
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  variacion   VariacionProducto @relation(fields: [variacionId], references: [id])
-  Producto    Producto?         @relation(fields: [productoId], references: [id])
+  tipo        String? // Puedes usar 'principal', 'secundaria', etc.
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  variacion   VariacionProducto? @relation(fields: [variacionId], references: [id])
+  Producto    Producto?          @relation(fields: [productoId], references: [id])
   productoId  String?
 }
 
 model VariacionProducto {
-  id         String                    @id @default(cuid())
+  id         String                    @id @default(uuid())
   productoId String
   producto   Producto                  @relation(fields: [productoId], references: [id])
   stock      Int
@@ -116,23 +116,27 @@ model VariacionProducto {
 }
 
 model VariacionAtributo {
-  id          String            @id @default(cuid())
-  variacionId String
-  nombre      String // Nombre del atributo (Ej. 'Color', 'Talla', 'Material', etc.)
-  valor       String // Valor de la variación (Ej. 'Rojo', 'M', 'Algodón', etc.)
-  variacion   VariacionProducto @relation(fields: [variacionId], references: [id])
+  id                  String             @id @default(uuid())
+  variacionId         String
+  opcionAtributoId    String
+  valorAtributo       OpcionAtributo     @relation(fields: [opcionAtributoId], references: [id])
+  VariacionProducto   VariacionProducto? @relation(fields: [variacionProductoId], references: [id])
+  variacionProductoId String?
+
+  @@unique([variacionId, opcionAtributoId]) // Asegura que no haya duplicados
 }
 
 model AtributoVariacion {
-  id             String           @id @default(cuid())
+  id             String           @id @default(uuid())
   nombre         String // Nombre del atributo (Ej. 'Color', 'Talla', etc.)
-  descripcion    String
+  descripcion    String?
   OpcionAtributo OpcionAtributo[]
 }
 
 model OpcionAtributo {
-  id         String            @id @default(cuid())
-  atributoId String
-  valor      String // Valor de la opción (Ej. 'Rojo', 'M', 'Algodón', etc.)
-  atributo   AtributoVariacion @relation(fields: [atributoId], references: [id])
+  id                String              @id @default(uuid())
+  atributoId        String
+  valor             String // Valor de la opción (Ej. 'Rojo', 'M', 'Algodón', etc.)
+  atributo          AtributoVariacion   @relation(fields: [atributoId], references: [id])
+  VariacionAtributo VariacionAtributo[]
 }

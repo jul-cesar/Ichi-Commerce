@@ -1,24 +1,49 @@
-import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import Link from "next/link";
+import { prisma } from "../../db/instance";
+import { Badge } from "./ui/badge";
 
 interface ProductCardProps {
   id: string;
   name: string;
   price: number;
   image: string;
-  stock: number;
+
   category: string;
 }
 
-export default function ProductCard({
+export const dynamic = "force-dynamic";
+
+export default async function ProductCard({
   id,
   name,
   price,
   image,
-  stock,
   category,
 }: ProductCardProps) {
+  // Función para obtener el stock total de un producto
+
+  const obtenerStockTotalProducto = async (productoId: string) => {
+    // Obtener todas las variaciones del producto
+    const variaciones = await prisma.variacionProducto.findMany({
+      where: {
+        productoId: productoId,
+      },
+      select: {
+        stock: true,
+      },
+    });
+
+    // Sumar el stock de todas las variaciones
+    const stockTotal = variaciones.reduce((total, variacion) => {
+      return total + variacion.stock;
+    }, 0);
+
+    return stockTotal;
+  };
+
+  const stock = await obtenerStockTotalProducto(id);
+  // Aquí puedes usar el stock como desees, por ejemplo, mostrarlo en la tarjeta
   return (
     <Link
       href={`/productos/${id}`}

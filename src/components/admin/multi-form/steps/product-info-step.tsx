@@ -55,11 +55,11 @@ export default function ProductInfoStep() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">Product Information</h2>
+      <h2 className="text-xl font-semibold">Informacion basica del producto</h2>
 
       <div className="space-y-4">
         <div>
-          <Label htmlFor="name">Product Name</Label>
+          <Label htmlFor="name">Nombre del producto</Label>
           <Input
             id="name"
             value={state.nombre}
@@ -73,7 +73,7 @@ export default function ProductInfoStep() {
         </div>
 
         <div>
-          <Label htmlFor="description">Description</Label>
+          <Label htmlFor="description">Descripcion</Label>
           <Textarea
             id="description"
             value={state.descripcion}
@@ -88,7 +88,7 @@ export default function ProductInfoStep() {
         </div>
 
         <div>
-          <Label htmlFor="price">Price</Label>
+          <Label htmlFor="price">Precio</Label>
           <Input
             id="price"
             value={state.precio}
@@ -103,7 +103,7 @@ export default function ProductInfoStep() {
         </div>
 
         <div>
-          <Label htmlFor="image">Product Image</Label>
+          <Label htmlFor="image">Imagen del producto</Label>
 
           {state.imagenPrincipal ? (
             <div className="mt-2 relative w-40 h-40 border rounded-md overflow-hidden">
@@ -134,7 +134,7 @@ export default function ProductInfoStep() {
               >
                 <ImagePlus className="w-8 h-8 text-muted-foreground" />
                 <span className="mt-2 text-sm text-muted-foreground">
-                  Upload Image
+                  Subir imagen
                 </span>
                 <Input
                   id="image-upload"
@@ -155,7 +155,7 @@ export default function ProductInfoStep() {
       </div>
 
       <div className="flex justify-end">
-        <Button onClick={validateAndContinue}>Next</Button>
+        <Button onClick={validateAndContinue}>Siguiente</Button>
       </div>
     </div>
   );

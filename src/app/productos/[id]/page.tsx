@@ -1,41 +1,103 @@
+import AtributesSelect from "@/components/AtributesSelect";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Minus, Plus, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { prisma } from "../../../../db/instance";
 
-// Example products data - in a real app, this would come from a database
-const products = [
-  {
-    id: "1",
-    name: "Camiseta Básica Algodón",
-    price: 49900,
-    image: "/examples/camiseta.jpg",
-    stock: 25,
-    category: "Camisetas",
-    description:
-      "Camiseta básica de algodón 100% orgánico. Corte regular y cuello redondo. Perfecta para el día a día.",
-    sizes: ["XS", "S", "M", "L", "XL"],
-    colors: ["Negro", "Blanco", "Gris", "Azul"],
-  },
-  {
-    id: "2",
-    name: "Jeans Slim Fit",
-    price: 129900,
-    image: "/examples/pants.jpg",
-    stock: 12,
-    category: "Pantalones",
-    description:
-      "Jeans de corte slim con 5 bolsillos. Elaborados con algodón y elastano para mayor comodidad y ajuste.",
-    sizes: ["28", "30", "32", "34", "36"],
-    colors: ["Azul oscuro", "Azul claro", "Negro"],
-  },
-  // Other products would be here
-];
-
-export default function ProductPage({ params }: { params: { id: string } }) {
+export default async function ProductPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   // Find the product with the matching ID
-  const product = products.find((p) => p.id === params.id) || products[0];
+  const product = await prisma.producto.findUnique({
+    where: { id: params.id },
+    include: {
+      categoria: true,
+      variaciones: {
+        include: {
+          atributos: {
+            include: {
+              valorAtributo: {
+                include: {
+                  atributo: true, // Incluimos el modelo AtributoVariacion
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!product) {
+    console.log("producto no encontrado.");
+    return;
+  }
+
+  type OpcionesPorAtributo = {
+    [key: string]: string[]; // Clave: nombre del atributo, Valor: array de opciones
+  };
+
+  const opcionesPorAtributo: OpcionesPorAtributo = {};
+
+  product.variaciones.forEach((variacion) => {
+    variacion.atributos.forEach((atributo) => {
+      const nombreAtributo = atributo.valorAtributo.atributo.nombre; // Accedemos al nombre del atributo
+      const valorOpcion = atributo.valorAtributo.valor;
+
+      if (!opcionesPorAtributo[nombreAtributo]) {
+        opcionesPorAtributo[nombreAtributo] = [];
+      }
+
+      if (!opcionesPorAtributo[nombreAtributo].includes(valorOpcion)) {
+        opcionesPorAtributo[nombreAtributo].push(valorOpcion);
+      }
+    });
+  });
+
+  console.log(product);
+
+  let salida = "";
+  for (const nombreAtributo in opcionesPorAtributo) {
+    salida += `${nombreAtributo}: ${opcionesPorAtributo[nombreAtributo].join(
+      ", "
+    )}  `;
+  }
+
+  const obtenerStockTotalproduct = async (productId: string) => {
+    // Obtener todas las variaciones del product
+    const variaciones = await prisma.variacionProducto.findMany({
+      where: {
+        productoId: productId,
+      },
+      select: {
+        stock: true,
+      },
+    });
+
+    // Sumar el stock de todas las variaciones
+    const stockTotal = variaciones.reduce((total, variacion) => {
+      return total + variacion.stock;
+    }, 0);
+
+    return stockTotal;
+  };
+
+  const stock = await obtenerStockTotalproduct(product?.id || "");
+
+  let htmlSalida = "";
+
+  for (const nombreAtributo in opcionesPorAtributo) {
+    htmlSalida += `<h1>${nombreAtributo}</h1>`;
+    htmlSalida += `<select>`;
+    opcionesPorAtributo[nombreAtributo].forEach((valorOpcion) => {
+      htmlSalida += `<option value="${valorOpcion}">${valorOpcion}</option>`;
+    });
+    htmlSalida += `</select><br>`;
+  }
 
   return (
     <main className="flex min-h-screen flex-col">
@@ -52,8 +114,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           {/* Product Image */}
           <div className="aspect-square overflow-hidden rounded-lg bg-muted">
             <Image
-              src={product.image || "/placeholder.svg"}
-              alt={product.name}
+              src={product?.imagenPrincipal || "/placeholder.svg"}
+              alt={product?.nombre ?? ""}
               width={600}
               height={600}
               className="h-full w-full object-cover"
@@ -63,20 +125,18 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           {/* Product Details */}
           <div className="flex flex-col">
             <div>
-              <h1 className="text-2xl font-bold">{product.name}</h1>
+              <h1 className="text-2xl font-bold">{product?.nombre}</h1>
               <p className="text-sm text-muted-foreground mt-1">
-                {product.category}
+                {product?.categoria.nombre}
               </p>
             </div>
 
             <div className="mt-4">
               <p className="text-2xl font-semibold">
-                ${product.price.toLocaleString("es-CO")}
+                ${product?.precio.toLocaleString("es-CO")}
               </p>
               <p className="text-sm text-muted-foreground mt-1">
-                {product.stock > 0
-                  ? `${product.stock} disponibles`
-                  : "Sin stock"}
+                {stock > 0 ? `${stock} disponibles` : "Sin stock"}
               </p>
             </div>
 
@@ -86,11 +146,11 @@ export default function ProductPage({ params }: { params: { id: string } }) {
               <div>
                 <h3 className="font-medium mb-3">Descripción</h3>
                 <p className="text-sm text-muted-foreground">
-                  {product.description}
+                  {product?.descripcion}
                 </p>
               </div>
-
-              <div>
+              <AtributesSelect product={product} />
+              {/* <div>
                 <h3 className="font-medium mb-3">Talla</h3>
                 <div className="flex flex-wrap gap-2">
                   {product.sizes.map((size) => (
@@ -120,8 +180,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                     </Button>
                   ))}
                 </div>
-              </div>
-
+              </div> */}
               <div>
                 <h3 className="font-medium mb-3">Cantidad</h3>
                 <div className="flex items-center">

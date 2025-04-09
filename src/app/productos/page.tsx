@@ -1,74 +1,15 @@
 import ProductCard from "@/components/ProductCard";
 import ProductFilters from "@/components/ProductFilters";
 import Image from "next/image";
+import { prisma } from "../../../db/instance";
 
-// Example products data
-const products = [
-  {
-    id: "1",
-    name: "Camiseta Básica Algodón",
-    price: 49900,
-    image: "/examples/camiseta.jpg",
-    stock: 25,
-    category: "Camisetas",
+export const dynamic = "force-dynamic"; // Enable dynamic rendering for this page
+
+const products = await prisma.producto.findMany({
+  include: {
+    categoria: true,
   },
-  {
-    id: "2",
-    name: "Jeans Slim Fit",
-    price: 129900,
-    image: "/examples/pants.jpg",
-    stock: 12,
-    category: "Pantalones",
-  },
-  {
-    id: "3",
-    name: "Vestido Casual Verano",
-    price: 89900,
-    image: "/examples/dress.jpg",
-    stock: 8,
-    category: "Vestidos",
-  },
-  {
-    id: "4",
-    name: "Zapatillas Urbanas",
-    price: 159900,
-    image: "/examples/shoes.jpg",
-    stock: 4,
-    category: "Calzado",
-  },
-  {
-    id: "5",
-    name: "Reloj Minimalista",
-    price: 199900,
-    image: "/examples/ring.jpg",
-    stock: 3,
-    category: "Accesorios",
-  },
-  {
-    id: "6",
-    name: "Chaqueta Denim",
-    price: 179900,
-    image: "/examples/shirt.jpg",
-    stock: 0,
-    category: "Camisetas",
-  },
-  {
-    id: "7",
-    name: "Bufanda de Lana",
-    price: 45900,
-    image: "/examples/ring.jpg",
-    stock: 15,
-    category: "Accesorios",
-  },
-  {
-    id: "8",
-    name: "Pantalón Chino",
-    price: 99900,
-    image: "/examples/pants.jpg",
-    stock: 7,
-    category: "Pantalones",
-  },
-];
+});
 
 export default function ProductsPage() {
   return (
@@ -103,11 +44,10 @@ export default function ProductsPage() {
             <ProductCard
               key={product.id}
               id={product.id}
-              name={product.name}
-              price={product.price}
-              image={product.image}
-              stock={product.stock}
-              category={product.category}
+              name={product.nombre}
+              price={product.precio}
+              image={product.imagenPrincipal ?? ""}
+              category={product.categoria.nombre}
             />
           ))}
         </div>

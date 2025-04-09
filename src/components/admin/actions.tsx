@@ -2,6 +2,7 @@
 
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../../db/instance";
+import { ProductFormState } from "./multi-form/formContext";
 
 export const getCategories = async () => {
   return await prisma.categoria.findMany();
@@ -71,48 +72,62 @@ export const crearAtributo = async (
   return newAtri;
 };
 
-export const guardarProducto = async (inputData: any) => {
-  // Crear el Producto (si no está hecho aún)
+export const guardarProducto = async (inputData: ProductFormState) => {
+  // Crear el Producto
   const producto = await prisma.producto.create({
     data: {
-      nombre: inputData.name,
-      precio: parseFloat(inputData.price), // Convertir precio a float
-
-      categoriaId: inputData.category, // Relacionado con la categoría seleccionada
-      imagenPrincipal: "", // Si hay imagen principal
+      nombre: inputData.nombre,
+      descripcion: inputData.descripcion,
+      precio: parseFloat(inputData.precio),
+      categoriaId: inputData.categoryId,
+      imagenPrincipal: "",
     },
   });
 
   // Crear las Variaciones para el Producto
   const variaciones = await Promise.all(
-    inputData.variations.map(async (variation: any) => {
+    inputData.variations.map(async (variation) => {
       // Crear la variación
-      const variacion = await prisma.variacionProducto.create({
+      const variacionCreada = await prisma.variacionProducto.create({
         data: {
-          productoId: producto.id, // Relacionamos la variación con el producto creado
+          productoId: producto.id,
           stock: variation.stock,
         },
       });
 
+      // Insertar los atributos de la variación
       await Promise.all(
         Object.keys(variation.attributes).map(async (attributeId) => {
-          await prisma.variacionAtributo.create({
-            data: {
-              variacionId: variacion.id,
-              nombre: variation.attributes[attributeId],
-              valor: attributeId,
-            },
-          });
+          const opcionAtributoId = variation.attributes[attributeId];
+
+          if (opcionAtributoId) {
+            // Verificar si la opcionAtributoId existe.
+            const opcionAtributo = await prisma.opcionAtributo.findUnique({
+              where: {
+                id: opcionAtributoId,
+              },
+            });
+
+            if (opcionAtributo) {
+              await prisma.variacionAtributo.create({
+                data: {
+                  variacionProductoId: variacionCreada.id,
+                  variacionId: variacionCreada.id,
+                  opcionAtributoId: opcionAtributoId,
+                },
+              });
+            } else {
+              console.error(
+                `OpcionAtributo con ID ${opcionAtributoId} no encontrada.`
+              );
+            }
+          }
         })
       );
 
-      return variacion;
+      return variacionCreada;
     })
   );
 
-  console.log(
-    "Producto y variaciones creadas con éxito:",
-    producto,
-    variaciones
-  );
+  return producto;
 };

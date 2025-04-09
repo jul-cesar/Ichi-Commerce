@@ -54,13 +54,11 @@ export default function ProductForm() {
       <Card className="p-6 max-w-3xl mx-auto">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-green-600 mb-4">
-            Product Created Successfully!
+            Producto creado correctamente
           </h2>
-          <p className="mb-6">
-            Your product has been created and is now ready for review.
-          </p>
+
           <Button onClick={() => setIsSuccess(false)}>
-            Create Another Product
+            Crear otro producto
           </Button>
         </div>
       </Card>
@@ -86,21 +84,21 @@ export default function ProductForm() {
               state.currentStep === 1 ? "text-primary font-medium" : ""
             }`}
           >
-            Product Information
+            Informacion del producto
           </div>
           <div
             className={`text-sm ${
               state.currentStep === 2 ? "text-primary font-medium" : ""
             }`}
           >
-            Product Details
+            Detalles del producto
           </div>
           <div
             className={`text-sm ${
               state.currentStep === 3 ? "text-primary font-medium" : ""
             }`}
           >
-            Variations
+            Variaciones
           </div>
         </div>
       </div>
@@ -115,7 +113,7 @@ export default function ProductForm() {
               onClick={prevStep}
               disabled={isSubmitting}
             >
-              Back
+              Atras
             </Button>
           </div>
         )}
