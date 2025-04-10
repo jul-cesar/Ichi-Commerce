@@ -11,6 +11,8 @@ export default async function ProductsPage() {
       categoria: true,
     },
   });
+
+  const categories = await prisma.categoria.findMany({});
   return (
     <main className="flex min-h-screen flex-col">
       {/* Banner Section */}
@@ -34,7 +36,7 @@ export default async function ProductsPage() {
       </section>
 
       {/* Filters Section */}
-      <ProductFilters />
+      <ProductFilters categories={categories} />
 
       {/* Products Grid */}
       <section className="container p-8">

@@ -3,6 +3,7 @@
 import {
   BarChart3,
   Box,
+  Dices,
   Home,
   LayoutDashboard,
   Package,
@@ -30,7 +31,7 @@ const sidebarItems = [
   {
     title: "Atributos",
     href: "/admin/atributos",
-    icon: Package,
+    icon: Dices,
   },
 
   {

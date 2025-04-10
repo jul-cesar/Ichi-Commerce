@@ -7,103 +7,60 @@ import {
   MapPin,
   Package,
   ShieldCheck,
+  ShoppingBag,
+  Sparkles,
   Truck,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { prisma } from "../../db/instance";
 
-const featuredProducts = [
-  {
-    id: "1",
-    name: "Camiseta Básica Algodón",
-    price: 49900,
-    image: "/examples/camiseta.jpg",
-    stock: 25,
-    category: "Camisetas",
-  },
-  {
-    id: "3",
-    name: "Vestido Casual Verano",
-    price: 89900,
-    image: "/examples/dress.jpg",
-    stock: 8,
-    category: "Vestidos",
-  },
-  {
-    id: "5",
-    name: "Reloj Minimalista",
-    price: 199900,
-    image: "/examples/ring.jpg",
-    stock: 3,
-    category: "Accesorios",
-  },
-  {
-    id: "4",
-    name: "Zapatillas Urbanas",
-    price: 159900,
-    image: "/examples/shoes.jpg",
-    stock: 4,
-    category: "Calzado",
-  },
-];
+export default async function HomePage() {
+  const featuredProducts = await prisma.producto.findMany({
+    include: {
+      categoria: true,
+    },
+    take: 4, // Limit to 4 products for featured section
+  });
 
-// Testimonials data
-const testimonials = [
-  {
-    name: "Carolina Ramírez",
-    location: "Bogotá",
-    content:
-      "Excelente servicio y la opción de pago contraentrega me da mucha confianza. Los productos son de muy buena calidad.",
-    rating: 5,
-  },
-  {
-    name: "Andrés Martínez",
-    location: "Medellín",
-    content:
-      "Me encanta que pueda recibir mis pedidos sin costo adicional. La ropa es exactamente como se ve en las fotos.",
-    rating: 5,
-  },
-  {
-    name: "Valentina Torres",
-    location: "Cali",
-    content:
-      "El envío llegó antes de lo esperado y el proceso de pago contraentrega fue muy sencillo. Definitivamente volveré a comprar.",
-    rating: 4,
-  },
-];
-
-export default function HomePage() {
   return (
-    <main className=" flex min-h-screen flex-col">
+    <main className="flex min-h-screen flex-col">
       {/* Hero Banner */}
-      <section className="relative h-[70vh] overflow-hidden">
+      <section className="relative h-[80vh] overflow-hidden">
         <Image
           src="/bannermain.jpg"
-          alt="ICHI - Moda colombiana"
+          alt="Calzado de calidad - Envío gratis"
           fill
-          className="object-cover"
+          className="object-cover object-center"
           priority
         />
-        <div className="absolute inset-0 bg-black/50 flex items-center p-6">
+        <div className="absolute inset-0 bg-black/60 flex items-center p-6">
           <div className="container">
             <div className="max-w-xl space-y-5 text-white">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                Moda colombiana a tu puerta
+                Calzado colombiano de calidad
               </h1>
               <p className="text-lg md:text-xl">
-                Paga al recibir tu pedido y disfruta de envío gratis a toda
-                Colombia
+                Estilo y comodidad en cada paso. Paga al recibir y disfruta de
+                envío gratis a toda Colombia.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                <Button size="lg" asChild>
-                  <Link href="/productos">Ver productos</Link>
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                <Button
+                  size="lg"
+                  className="bg-primary hover:bg-primary/90"
+                  asChild
+                >
+                  <Link href="/productos">
+                    <ShoppingBag className="mr-2 h-5 w-5" />
+                    Ver colección
+                  </Link>
                 </Button>
                 <Button
                   size="lg"
                   variant="outline"
                   className="bg-transparent text-white border-white hover:bg-white hover:text-black"
                 >
-                  Conocer más
+                  Novedades
                 </Button>
               </div>
             </div>
@@ -111,14 +68,23 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Benefits Section */}
-      <section className="py-16 bg-muted/30 p-4">
+      {/* Benefits Section - Highlighted */}
+      <section className="py-12 bg-primary/5 p-4">
         <div className="container">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold">
+              Compra con total confianza
+            </h2>
+            <p className="text-muted-foreground mt-2">
+              Beneficios exclusivos para nuestros clientes
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="border-none shadow-sm">
+            <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="flex flex-col items-center text-center p-6">
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Truck className="h-6 w-6 text-primary" />
+                <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Truck className="h-7 w-7 text-primary" />
                 </div>
                 <h3 className="font-medium text-lg mb-2">Envío Gratis</h3>
                 <p className="text-sm text-muted-foreground">
@@ -128,10 +94,10 @@ export default function HomePage() {
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-sm">
+            <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="flex flex-col items-center text-center p-6">
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Package className="h-6 w-6 text-primary" />
+                <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Package className="h-7 w-7 text-primary" />
                 </div>
                 <h3 className="font-medium text-lg mb-2">Pago Contraentrega</h3>
                 <p className="text-sm text-muted-foreground">
@@ -140,10 +106,10 @@ export default function HomePage() {
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-sm">
+            <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="flex flex-col items-center text-center p-6">
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <Clock className="h-6 w-6 text-primary" />
+                <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <Clock className="h-7 w-7 text-primary" />
                 </div>
                 <h3 className="font-medium text-lg mb-2">Entrega Rápida</h3>
                 <p className="text-sm text-muted-foreground">
@@ -153,10 +119,10 @@ export default function HomePage() {
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-sm">
+            <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="flex flex-col items-center text-center p-6">
-                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <ShieldCheck className="h-6 w-6 text-primary" />
+                <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                  <ShieldCheck className="h-7 w-7 text-primary" />
                 </div>
                 <h3 className="font-medium text-lg mb-2">Compra Segura</h3>
                 <p className="text-sm text-muted-foreground">
@@ -168,8 +134,87 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured Products */}
+      {/* Collection Highlight */}
       <section className="py-16 p-4">
+        <div className="container">
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-3xl font-bold mb-4">
+                  Nueva colección de temporada
+                </h2>
+                <p className="text-muted-foreground">
+                  Descubre nuestra nueva colección de calzado diseñada para
+                  combinar estilo, comodidad y durabilidad. Fabricados con los
+                  mejores materiales y con el sello de calidad colombiana.
+                </p>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-lg">Materiales premium</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Cuero genuino y materiales de alta calidad para mayor
+                      durabilidad
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-lg">Diseño ergonómico</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Plantillas anatómicas que se adaptan a tu pie para mayor
+                      comodidad
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-lg">Estilo versátil</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Diseños que combinan con cualquier ocasión, desde casual
+                      hasta formal
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <Button size="lg" className="mt-2" asChild>
+                <Link href="/productos">Ver colección completa</Link>
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="aspect-[3/4] relative rounded-lg overflow-hidden">
+                <Image
+                  src="/shoes-collection-1.jpg"
+                  alt="Zapatos de temporada"
+                  fill
+                  className="object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="aspect-[3/4] relative rounded-lg overflow-hidden mt-8">
+                <Image
+                  src="/shoes-collection-2.jpg"
+                  alt="Zapatos de temporada"
+                  fill
+                  className="object-cover hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Products */}
+      <section className="py-16 bg-muted/30 p-4">
         <div className="container">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
@@ -177,7 +222,7 @@ export default function HomePage() {
                 Productos Destacados
               </h2>
               <p className="text-muted-foreground mt-1">
-                Descubre nuestra selección de productos más populares
+                Nuestros modelos más vendidos y mejor valorados
               </p>
             </div>
             <Button variant="ghost" className="mt-4 md:mt-0" asChild>
@@ -193,11 +238,10 @@ export default function HomePage() {
               <ProductCard
                 key={product.id}
                 id={product.id}
-                name={product.name}
-                price={product.price}
-                image={product.image}
-                stock={product.stock}
-                category={product.category}
+                name={product.nombre}
+                price={product.precio}
+                image={product.imagenPrincipal || "/placeholder-shoe.jpg"}
+                category={product.categoria.nombre}
               />
             ))}
           </div>
@@ -205,36 +249,43 @@ export default function HomePage() {
       </section>
 
       {/* About Section */}
-      <section className="py-16 bg-muted/30 p-4">
+      <section className="py-16 p-4">
         <div className="container">
           <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="relative h-[400px] rounded-lg overflow-hidden">
+            <div className="relative h-[450px] rounded-lg overflow-hidden">
               <Image
                 src="/bannerProducts.jpg"
-                alt="Sobre ICHI"
+                alt="Calzado colombiano de calidad"
                 fill
                 className="object-cover"
               />
             </div>
             <div className="space-y-6">
               <h2 className="text-3xl font-bold">
-                Moda colombiana con identidad
+                Calzado colombiano con identidad
               </h2>
               <p className="text-muted-foreground">
-                En ICHI creemos que la moda debe ser accesible para todos. Por
+                Creemos que el buen calzado debe ser accesible para todos. Por
                 eso, hemos creado un modelo de negocio que elimina las barreras
-                tradicionales del comercio electrónico.
+                tradicionales del comercio electrónico, permitiéndote pagar al
+                recibir tu pedido.
               </p>
               <p className="text-muted-foreground">
-                Nuestros productos son diseñados y fabricados en Colombia,
-                apoyando el talento y la industria local. Cada prenda refleja la
-                calidad y el estilo que nos caracteriza.
+                Nuestros zapatos son diseñados y fabricados en Colombia,
+                apoyando el talento y la industria local. Cada par refleja la
+                calidad, el confort y el estilo que nos caracteriza.
               </p>
-              <div className="pt-4">
-                <h3 className="text-xl font-medium mb-4">Cobertura nacional</h3>
+              <div className="pt-4 space-y-4">
+                <h3 className="text-xl font-medium">Cobertura nacional</h3>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-5 w-5 text-primary" />
-                  <span>Envíos a toda Colombia</span>
+                  <span>Envíos a toda Colombia sin costo adicional</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Package className="h-5 w-5 text-primary" />
+                  <span>
+                    Pago contraentrega en todas las ciudades principales
+                  </span>
                 </div>
               </div>
             </div>
@@ -242,76 +293,25 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-16 px-6">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold">
-              Lo que dicen nuestros clientes
-            </h2>
-            <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
-              Miles de colombianos ya disfrutan de nuestros productos y del
-              servicio de pago contraentrega
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-none shadow-sm">
-                <CardContent className="p-6">
-                  <div className="flex items-center mb-4">
-                    {Array(5)
-                      .fill(0)
-                      .map((_, i) => (
-                        <svg
-                          key={i}
-                          className={`w-5 h-5 ${
-                            i < testimonial.rating
-                              ? "text-yellow-400"
-                              : "text-gray-300"
-                          }`}
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
-                  </div>
-                  <p className="text-muted-foreground mb-4">
-                    "{testimonial.content}"
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <p className="font-medium">{testimonial.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {testimonial.location}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Newsletter */}
-      <section className="py-16 bg-primary text-primary-foreground">
+
+      {/* Call to Action */}
+      <section className="py-12 bg-muted/20">
         <div className="container">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-4">
-              Únete a nuestra comunidad
+          <div className="max-w-3xl mx-auto text-center space-y-6">
+            <h2 className="text-2xl md:text-3xl font-bold">
+              ¿Listo para estrenar?
             </h2>
-            <p className="mb-6">
-              Suscríbete para recibir noticias sobre nuevas colecciones y
-              ofertas exclusivas
+            <p className="text-muted-foreground">
+              Explora nuestra colección completa y encuentra el calzado perfecto
+              para cada ocasión
             </p>
-            <div className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Tu correo electrónico"
-                className="px-4 py-2 rounded-md flex-1 text-foreground bg-white"
-              />
-              <Button variant="secondary">Suscribirse</Button>
-            </div>
+            <Button size="lg" asChild>
+              <Link href="/productos">
+                <ShoppingBag className="mr-2 h-5 w-5" />
+                Ver todos los productos
+              </Link>
+            </Button>
           </div>
         </div>
       </section>

@@ -18,19 +18,15 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
+import { Prisma } from "@prisma/client";
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 
-const categories = [
-  "Todos",
-  "Camisetas",
-  "Pantalones",
-  "Vestidos",
-  "Accesorios",
-  "Calzado",
-];
+type ProductFilters = {
+  categories: Prisma.CategoriaGetPayload<{}>[];
+};
 
-export default function ProductFilters() {
+export default function ProductFilters({ categories }: ProductFilters) {
   const [priceRange, setPriceRange] = useState([0, 100]);
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [sortOption, setSortOption] = useState("relevance");
@@ -57,11 +53,11 @@ export default function ProductFilters() {
             <DropdownMenuSeparator />
             {categories.map((category) => (
               <DropdownMenuCheckboxItem
-                key={category}
-                checked={selectedCategory === category}
-                onCheckedChange={() => setSelectedCategory(category)}
+                key={category.id}
+                checked={selectedCategory === category.nombre}
+                onCheckedChange={() => setSelectedCategory(category.id)}
               >
-                {category}
+                {category.nombre}
               </DropdownMenuCheckboxItem>
             ))}
           </DropdownMenuContent>
