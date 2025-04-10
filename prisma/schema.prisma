@@ -107,7 +107,7 @@ model ImagenVariacionProducto {
 model VariacionProducto {
   id         String                    @id @default(uuid())
   productoId String
-  producto   Producto                  @relation(fields: [productoId], references: [id])
+  producto   Producto                  @relation(fields: [productoId], references: [id], onDelete: Cascade)
   stock      Int
   createdAt  DateTime                  @default(now())
   updatedAt  DateTime                  @updatedAt
@@ -119,7 +119,7 @@ model VariacionAtributo {
   id                  String             @id @default(uuid())
   opcionAtributoId    String
   valorAtributo       OpcionAtributo     @relation(fields: [opcionAtributoId], references: [id])
-  VariacionProducto   VariacionProducto? @relation(fields: [variacionProductoId], references: [id])
+  VariacionProducto   VariacionProducto? @relation(fields: [variacionProductoId], references: [id], onDelete: Cascade)
   variacionProductoId String?
 
   @@unique([variacionProductoId, opcionAtributoId])

@@ -22,96 +22,129 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Prisma } from "@prisma/client";
-import { Plus } from "lucide-react";
+import type { Prisma } from "@prisma/client";
+import { Edit } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { createVariation } from "./actions";
+import { actualizarVariacion } from "./actions";
 
-type Attribute =
-  | Prisma.AtributoVariacionGetPayload<{
-      include: {
-        OpcionAtributo: true;
+type Attribute = Prisma.AtributoVariacionGetPayload<{
+  include: {
+    OpcionAtributo: true;
+  };
+}>;
+
+type Variation = {
+  id: string;
+  stock: number;
+  atributos: Array<{
+    id: string;
+    valorAtributo: {
+      id: string;
+      valor: string;
+      atributo: {
+        id: string;
+        nombre: string;
       };
-    }>[]
-  | undefined;
-
-type AddVariationModalProps = {
-  productId: string;
-  attributes: Attribute;
-  trigger?: React.ReactNode;
-  children?: React.ReactNode; // Agregar esta línea para permitir 'children'
+    };
+  }>;
 };
 
-export function AddVariationModal({
+type EditVariationModalProps = {
+  productId: string;
+  variation: Variation;
+  attributes: Attribute[] | undefined;
+  trigger?: React.ReactNode;
+};
+
+export function EditVariationModal({
   productId,
+  variation,
   attributes,
   trigger,
-}: AddVariationModalProps) {
+}: EditVariationModalProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [selectedAttributes, setSelectedAttributes] = useState<{
-    [key: string]: string;
-  }>({});
+  // Initialize selected attributes from the variation
+  const [selectedAttributes, setSelectedAttributes] = useState<
+    Record<string, string>
+  >({});
+  const [stock, setStock] = useState("");
 
-  const [stock, setStock] = useState("0");
-  const [price, setPrice] = useState("");
-
-  // Reset form when modal opens
+  // Initialize form when modal opens
   useEffect(() => {
     if (open) {
-      setSelectedAttributes({});
-      setStock("0");
-      setPrice("");
+      // Create a fresh object with the initial attributes
+      const initialAttrs = variation.atributos.reduce((acc, attr) => {
+        acc[attr.valorAtributo.atributo.id] = attr.valorAtributo.id;
+        return acc;
+      }, {} as Record<string, string>);
+
+      setSelectedAttributes(initialAttrs);
+      setStock(variation.stock.toString());
     }
-  }, [open]);
+  }, [open, variation]);
 
   const handleAttributeChange = (attributeId: string, valueId: string) => {
-    setSelectedAttributes((prev) => ({
-      ...prev,
-      [attributeId]: valueId,
-    }));
+    console.log("Changing attribute", attributeId, "to value", valueId);
+    setSelectedAttributes((prev) => {
+      const updated = { ...prev, [attributeId]: valueId };
+      console.log("Updated attributes:", updated);
+      return updated;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (attributes)
-      try {
-        // Check if all attributes have been selected
-        if (
-          attributes?.length > 0 ||
-          Object.keys(selectedAttributes).length < attributes?.length
-        ) {
-          toast("Asegurate de llenar todos los campos requeridos");
-        }
-        const data = {
-          productoId: productId,
-          atributos: Object.entries(selectedAttributes).map(
-            ([attributeId, valueId]) => ({
-              attributeId,
-              valueId,
-            })
-          ),
-          stock: Number(stock),
-        };
-
-        await createVariation(data); // Call the API to create the variation
-
-        setOpen(false);
-        router.refresh();
-      } catch (error) {
-        console.error("Error:", error);
-        // You could add toast notifications here
-      } finally {
-        setIsSubmitting(false);
+    try {
+      if (
+        attributes &&
+        attributes.length > 0 &&
+        Object.keys(selectedAttributes).length < attributes.length
+      ) {
+        throw new Error("Debes seleccionar un valor para cada atributo");
       }
+
+      console.log("Submitting with attributes:", selectedAttributes);
+
+      // Prepare data for API
+      const data = {
+        productId,
+        variationId: variation.id,
+        attributes: Object.entries(selectedAttributes).map(
+          ([attributeId, valueId]) => ({
+            attributeId,
+            valueId,
+          })
+        ),
+        stock: Number(stock),
+      };
+
+      // API call to update variation
+      const edit = await actualizarVariacion(data);
+
+      if (edit.success) {
+        toast.success("Variacion editada con exito");
+      } else {
+        toast.error(edit.error || "Error al editar la variación");
+      }
+      // Close modal and refresh page
+      setOpen(false);
+      router.refresh();
+    } catch (error) {
+      console.error("Error:", error);
+      // You could add toast notifications here
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
+  // Get attribute name and value for display
   const getAttributeDetails = (attributeId: string, valueId: string) => {
     const attribute = attributes?.find((attr) => attr.id === attributeId);
     if (!attribute) return { name: "", value: "" };
@@ -127,18 +160,18 @@ export function AddVariationModal({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button className="flex items-center justify-center">
-            <Plus className="size-4" />
-            Añadir variación
+          <Button variant="outline" size="sm">
+            <Edit className="mr-2 h-4 w-4" />
+            Editar variación
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Añadir nueva variación</DialogTitle>
+          <DialogTitle>Editar variación</DialogTitle>
           <DialogDescription>
-            Configura los atributos, stock y precio para esta nueva variación
-            del producto.
+            Modifica los atributos, stock y precio de esta variación del
+            producto.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -166,12 +199,12 @@ export function AddVariationModal({
             <div className="space-y-4">
               <h3 className="text-sm font-medium">Atributos</h3>
 
-              {attributes?.length === 0 ? (
+              {!attributes || attributes.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   No hay atributos definidos. Debes crear atributos primero.
                 </p>
               ) : (
-                attributes?.map((attribute) => (
+                attributes.map((attribute) => (
                   <div key={attribute.id} className="grid gap-2">
                     <Label htmlFor={`attribute-${attribute.id}`}>
                       {attribute.nombre}
@@ -200,19 +233,17 @@ export function AddVariationModal({
               )}
             </div>
 
-            {/* Stock and price */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="stock">Stock</Label>
-                <Input
-                  id="stock"
-                  type="number"
-                  min="0"
-                  value={stock}
-                  onChange={(e) => setStock(e.target.value)}
-                  required
-                />
-              </div>
+            {/* Stock */}
+            <div className="grid gap-2">
+              <Label htmlFor="stock">Stock</Label>
+              <Input
+                id="stock"
+                type="number"
+                min="0"
+                value={stock}
+                onChange={(e) => setStock(e.target.value)}
+                required
+              />
             </div>
           </div>
 
@@ -226,9 +257,9 @@ export function AddVariationModal({
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting || attributes?.length === 0}
+              disabled={isSubmitting || !attributes || attributes.length === 0}
             >
-              {isSubmitting ? "Guardando..." : "Crear variación"}
+              {isSubmitting ? "Guardando..." : "Actualizar variación"}
             </Button>
           </DialogFooter>
         </form>

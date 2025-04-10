@@ -206,3 +206,66 @@ export const createVariation = async (data: {
     };
   }
 };
+
+export const actualizarVariacion = async (data: {
+  productId: string;
+  variationId: string;
+
+  stock: number;
+  attributes: {
+    attributeId: string;
+
+    valueId: string;
+  }[];
+}) => {
+  try {
+    const { variationId, stock, attributes, productId } = data;
+
+    const variacionExistente = await prisma.variacionProducto.findFirst({
+      where: {
+        AND: {
+          productoId: productId,
+          atributos: {
+            every: {
+              opcionAtributoId: {
+                in: attributes.map((atributo) => atributo.valueId),
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (variacionExistente) {
+      return {
+        success: false,
+        error: "Ya existe una variación con estos atributos.",
+      };
+    }
+
+    // 1. Actualizar el stock de la variación
+    await prisma.variacionProducto.update({
+      where: { id: variationId },
+      data: { stock },
+    });
+
+    // 2. Actualizar los atributos de la variación
+    // Primero, elimina los atributos existentes
+    await prisma.variacionAtributo.deleteMany({
+      where: { variacionProductoId: variationId },
+    });
+
+    // Luego, crea los nuevos atributos
+    await prisma.variacionAtributo.createMany({
+      data: attributes.map((attribute) => ({
+        variacionProductoId: variationId,
+        opcionAtributoId: attribute.valueId,
+      })),
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error al actualizar la variación:", error);
+    return { success: false, error: "Error al actualizar la variación." };
+  }
+};

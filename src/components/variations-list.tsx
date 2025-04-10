@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { getAttributes } from "./admin/actions";
 import { AddVariationModal } from "./admin/add-variations";
+import { EditVariationModal } from "./admin/EditVariationModal";
 
 type VariationsListProps = {
   product: Prisma.ProductoGetPayload<{
@@ -38,7 +39,7 @@ type VariationsListProps = {
 export function VariationsList({ product }: VariationsListProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { data: attributes } = useQuery({
+  const { data: attributesList } = useQuery({
     queryFn: async () => await getAttributes(),
     queryKey: ["attributes"],
   });
@@ -51,7 +52,11 @@ export function VariationsList({ product }: VariationsListProps) {
           include: {
             valorAtributo: {
               include: {
-                atributo: true; // Include the Atributo model
+                atributo: {
+                  include: {
+                    OpcionAtributo: true; // Include the OpcionAtributo model if needed
+                  };
+                };
               };
             };
           };
@@ -92,7 +97,7 @@ export function VariationsList({ product }: VariationsListProps) {
           </span>
         </div>
         <div className="flex gap-2">
-          <AddVariationModal attributes={attributes} productId={product.id}>
+          <AddVariationModal attributes={attributesList} productId={product.id}>
             <Button variant="outline" size="sm" asChild>
               <Plus className="h-3 w-3 mr-1" />
               Añadir
@@ -147,14 +152,17 @@ export function VariationsList({ product }: VariationsListProps) {
                   )} */}
                 </div>
               </div>
-              <Button variant="ghost" size="icon" asChild>
-                <Link
-                  href={`/admin/productos/${product.id}/variaciones/${variation.id}/editar`}
-                >
-                  <Edit className="h-4 w-4" />
-                  <span className="sr-only">Editar variación</span>
-                </Link>
-              </Button>
+              <EditVariationModal
+                attributes={attributesList}
+                trigger={
+                  <Button variant="ghost" size="icon">
+                    <Edit className="h-4 w-4" />
+                    <span className="sr-only">Editar variación</span>
+                  </Button>
+                }
+                variation={variation}
+                productId={product.id}
+              ></EditVariationModal>
             </div>
           );
         })}
