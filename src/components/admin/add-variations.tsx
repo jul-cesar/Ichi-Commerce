@@ -84,7 +84,7 @@ export function AddVariationModal({
       try {
         // Check if all attributes have been selected
         if (
-          attributes?.length > 0 ||
+          attributes?.length > 0 &&
           Object.keys(selectedAttributes).length < attributes?.length
         ) {
           toast("Asegurate de llenar todos los campos requeridos");
@@ -100,7 +100,13 @@ export function AddVariationModal({
           stock: Number(stock),
         };
 
-        await createVariation(data); // Call the API to create the variation
+        const newVar = await createVariation(data); // Call the API to create the variation
+
+        if (newVar.error) {
+          toast.error("Error al crear la variación: " + newVar.error);
+        } else {
+          toast.success("Variación creada correctamente.");
+        }
 
         setOpen(false);
         router.refresh();
@@ -129,7 +135,7 @@ export function AddVariationModal({
         {trigger || (
           <Button className="flex items-center justify-center">
             <Plus className="size-4" />
-            Añadir variación
+            Añadir
           </Button>
         )}
       </DialogTrigger>

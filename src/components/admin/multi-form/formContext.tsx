@@ -136,10 +136,12 @@ export function useProductForm() {
 
 // Zod schemas for validation
 export const productInfoSchema = z.object({
-  nombre: z.string().min(3, "Name must be at least 3 characters"),
-  descripcion: z.string().min(10, "Description must be at least 10 characters"),
+  nombre: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
+  descripcion: z
+    .string()
+    .min(10, "La descripción debe tener al menos 10 caracteres"),
   precio: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-    message: "Price must be a positive number",
+    message: "El precio debe ser un número positivo",
   }),
   imagenPrincipal: z
     .instanceof(File)
@@ -147,24 +149,24 @@ export const productInfoSchema = z.object({
     .refine((file) => {
       if (!file) return false;
       return file.size < 5 * 1024 * 1024; // 5MB
-    }, "Image must be less than 5MB"),
+    }, "La imagen debe ser menor de 5MB"),
 });
 
 export const productDetailsSchema = z.object({
-  categoryId: z.string().min(1, "Please select a category"),
+  categoryId: z.string().min(1, "Por favor, selecciona una categoría"),
   selectedAttributeIds: z
     .array(z.string())
-    .min(1, "Please select at least one attribute"),
+    .min(1, "Por favor, selecciona al menos un atributo"),
 });
 
 export const variationSchema = z.object({
   id: z.string(),
   attributes: z.record(z.string()),
-  stock: z.number().int().min(0, "Stock must be a non-negative number"),
+  stock: z.number().int().min(0, "El stock debe ser un número no negativo"),
 });
 
 export const variationsSchema = z.object({
   variations: z
     .array(variationSchema)
-    .min(1, "Please add at least one variation"),
+    .min(1, "Por favor, agrega al menos una variación"),
 });

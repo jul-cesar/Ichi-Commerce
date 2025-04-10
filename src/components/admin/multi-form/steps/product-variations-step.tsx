@@ -175,17 +175,19 @@ export default function ProductVariationsStep({
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">Product Variations</h2>
+      <h2 className="text-xl font-semibold">Variaciones del producto</h2>
 
       {selectedAttributes?.length === 0 ? (
         <div className="p-4 bg-yellow-50 text-yellow-700 rounded-md">
-          Please go back and select at least one attribute to create variations.
+          Por favor selecciona al menos un atributo para crear variaciones.
         </div>
       ) : (
         <>
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Add New Variation</CardTitle>
+              <CardTitle className="text-lg">
+                Agrega una nueva variacion
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {selectedAttributes?.map((attribute) => (
@@ -214,7 +216,7 @@ export default function ProductVariationsStep({
               ))}
 
               <div>
-                <Label htmlFor="stock">Stock Quantity</Label>
+                <Label htmlFor="stock">Cantidad stock</Label>
                 <Input
                   id="stock"
                   type="number"
@@ -236,7 +238,7 @@ export default function ProductVariationsStep({
                 className="w-full"
                 variant="outline"
               >
-                <Plus className="mr-2 h-4 w-4" /> Add Variation
+                <Plus className="mr-2 h-4 w-4" /> Agregar variacion
               </Button>
             </CardFooter>
           </Card>
@@ -247,7 +249,7 @@ export default function ProductVariationsStep({
 
           {state.variations.length > 0 ? (
             <div className="space-y-4">
-              <h3 className="font-medium">Added Variations</h3>
+              <h3 className="font-medium">Variaciones agregadas</h3>
               <div className="space-y-3">
                 {state.variations.map((variation) => (
                   <div
@@ -275,7 +277,7 @@ export default function ProductVariationsStep({
             </div>
           ) : (
             <div className="p-4 bg-muted/50 rounded-md text-center text-muted-foreground">
-              No variations added yet. Add your first variation above.
+              No se han agregado variaciones aun
             </div>
           )}
 

@@ -1,6 +1,7 @@
+import { AddAttributeModal } from "@/components/admin/add-attributes";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { prisma } from "../../../../db/instance";
 import { AttributeValuesList } from "./components/attribute-values-list";
@@ -41,12 +42,7 @@ export default async function AttributesPage() {
             <p className="text-muted-foreground">
               Gestiona los tipos de atributos para tus productos
             </p>
-            <Button asChild>
-              <Link href="/admin/productos/atributos/nuevo">
-                <Plus className="mr-2 h-4 w-4" />
-                Nuevo Atributo
-              </Link>
-            </Button>
+            <AddAttributeModal />
           </div>
 
           <AttributesList attributes={attributes} />

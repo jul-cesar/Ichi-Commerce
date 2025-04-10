@@ -1,18 +1,10 @@
-import { ProductActions } from "@/components/product-actions";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { VariationsList } from "@/components/variations-list";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { prisma } from "../../../../db/instance";
+import { DataTable } from "./data-table/data-table";
+import { columns } from "./data-table/columns";
+
 
 export const dynamic = "force-dynamic";
 
@@ -35,15 +27,16 @@ export default async function ProductsPage() {
       },
     },
   });
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold tracking-tight">Productos</h1>
-        <div className="flex gap-2">
-          <Button asChild variant="outline">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button asChild variant="outline" className="w-full sm:w-auto">
             <Link href="/admin/atributos">Gestionar Atributos</Link>
           </Button>
-          <Button asChild>
+          <Button asChild className="w-full sm:w-auto">
             <Link href="/admin/productos/nuevo">
               <Plus className="mr-2 h-4 w-4" />
               Nuevo producto
@@ -52,48 +45,17 @@ export default async function ProductsPage() {
         </div>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[250px]">Nombre</TableHead>
-              <TableHead>Categoría</TableHead>
-              <TableHead>Precio Base</TableHead>
-              <TableHead className="w-[300px]">Variaciones</TableHead>
-              {/* <TableHead>Estado</TableHead> */}
-              <TableHead className="text-right">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {products?.map((product) => (
-              <TableRow key={product.id}>
-                <TableCell className="font-medium">{product.nombre}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{product.categoria.nombre}</Badge>
-                </TableCell>
-                <TableCell>${product.precio.toLocaleString("es-CO")}</TableCell>
-
-                {/* Variaciones y stock */}
-                <TableCell>
-                  <VariationsList product={product} />
-                </TableCell>
-
-                {/* Estado */}
-                {/* <TableCell>
-                  <Badge variant={product.activo ? "default" : "secondary"}>
-                    {product.activo ? "Activo" : "Inactivo"}
-                  </Badge>
-                </TableCell> */}
-
-                {/* Acciones */}
-                <TableCell className="text-right">
-                  <ProductActions product={product} />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <DataTable
+        columns={columns}
+        data={products.map((product) => ({
+          id: product.id,
+          nombre: product.nombre,
+          categoria: product.categoria,
+          precio: product.precio,
+          variaciones: product.variaciones,
+          product: product, // Pass the full product for actions
+        }))}
+      />
     </div>
   );
 }

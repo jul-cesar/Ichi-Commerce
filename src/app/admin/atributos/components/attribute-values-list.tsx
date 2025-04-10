@@ -1,38 +1,49 @@
 "use client";
 
+import {
+  addAttributeValue,
+  deleteAttributeOption,
+} from "@/components/admin/actions";
+import { useConfirmationModal } from "@/components/confirmationModal";
+import { EditAttributeValueModal } from "@/components/edit-attribute-value";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Edit, Plus, Save, Trash, X } from "lucide-react";
+import { Prisma } from "@prisma/client";
+import { Plus, Save, Trash, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 type AttributeValuesListProps = {
-  attributes: any[]; // Using any for simplicity
+  attributes: Prisma.AtributoVariacionGetPayload<{
+    include: {
+      OpcionAtributo: true;
+    };
+  }>[]; // Using any for simplicity
 };
 
 export function AttributeValuesList({ attributes }: AttributeValuesListProps) {
   const [editingAttribute, setEditingAttribute] = useState<string | null>(null);
-  const [newValues, setNewValues] = useState<{ [key: string]: string }>({});
+  const [newValues, setNewValues] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
+  const { ConfirmationModal, confirm } = useConfirmationModal();
+
   const handleAddValue = async (attributeId: string) => {
-    if (!newValues[attributeId] || newValues[attributeId].trim() === "") return;
+    if (newValues === "") return;
 
     setIsSubmitting(true);
 
     try {
-      // Implement your API call here
-      // Example:
-      // await fetch(`/api/atributos/${attributeId}/valores`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ valor: newValues[attributeId] }),
-      // });
-
-      // Reset state and refresh
-      setNewValues({ ...newValues, [attributeId]: "" });
+      const newVal = addAttributeValue(attributeId, newValues);
+      if ((await newVal).error) {
+        toast.error("Error al añadir valor");
+        return;
+      }
+      toast.success("Valor añadido correctamente");
+      setNewValues("");
       setEditingAttribute(null);
       router.refresh();
     } catch (error) {
@@ -72,6 +83,14 @@ export function AttributeValuesList({ attributes }: AttributeValuesListProps) {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="font-medium">{attribute.nombre}</h3>
+                <p>{attribute.descripcion}</p>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {attribute.OpcionAtributo?.length === 0 && (
+                    <span className="text-sm text-muted-foreground">
+                      No hay valores definidos
+                    </span>
+                  )}
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -98,13 +117,8 @@ export function AttributeValuesList({ attributes }: AttributeValuesListProps) {
               {editingAttribute === attribute.id && (
                 <div className="flex gap-2">
                   <Input
-                    value={newValues[attribute.id] || ""}
-                    onChange={(e) =>
-                      setNewValues({
-                        ...newValues,
-                        [attribute.id]: e.target.value,
-                      })
-                    }
+                    value={newValues}
+                    onChange={(e) => setNewValues(e.target.value)}
                     placeholder="Nuevo valor"
                     className="flex-1"
                   />
@@ -119,25 +133,50 @@ export function AttributeValuesList({ attributes }: AttributeValuesListProps) {
               )}
 
               <div className="grid gap-2">
-                {attribute.valores?.length === 0 ? (
+                {attribute.OpcionAtributo?.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
                     No hay valores definidos para este atributo
                   </p>
                 ) : (
-                  attribute.valores?.map((value: any) => (
+                  attribute.OpcionAtributo?.map((value) => (
                     <div
                       key={value.id}
                       className="flex items-center justify-between rounded-md border p-2"
                     >
                       <span>{value.valor}</span>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon">
-                          <Edit className="h-4 w-4" />
-                          <span className="sr-only">Editar</span>
-                        </Button>
+                        <EditAttributeValueModal value={value} />
+
                         <Button
                           variant="ghost"
                           size="icon"
+                          onClick={async () => {
+                            const confirmed = await confirm({
+                              title: "Eliminar valor",
+                              message:
+                                "¿Estás seguro de que deseas eliminar este valor?",
+                            });
+
+                            if (confirmed) {
+                              try {
+                                const result = await deleteAttributeOption(
+                                  value.id
+                                );
+                                if (result.error) {
+                                  toast.error("Error al eliminar valor");
+                                  return;
+                                }
+                                toast.success("Valor eliminado correctamente");
+                                router.refresh();
+                              } catch (error) {
+                                console.error(
+                                  "Error al eliminar valor:",
+                                  error
+                                );
+                                toast.error("Error al eliminar valor");
+                              }
+                            }
+                          }}
                           className="text-destructive"
                         >
                           <Trash className="h-4 w-4" />
@@ -152,6 +191,7 @@ export function AttributeValuesList({ attributes }: AttributeValuesListProps) {
           </CardContent>
         </Card>
       ))}
+      <ConfirmationModal />
     </div>
   );
 }

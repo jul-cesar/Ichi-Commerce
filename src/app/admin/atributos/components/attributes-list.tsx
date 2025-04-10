@@ -1,5 +1,7 @@
 "use client";
 
+import { deleteAttribute } from "@/components/admin/actions";
+import { EditAttributeModal } from "@/components/admin/edit-attribute-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,10 +14,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Prisma } from "@prisma/client";
-import { Edit, Trash } from "lucide-react";
+import { Trash } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 type AttributesListProps = {
   attributes: Prisma.AtributoVariacionGetPayload<{
@@ -30,7 +33,15 @@ export function AttributesList({ attributes }: AttributesListProps) {
   const [attributeToDelete, setAttributeToDelete] = useState<any>(null);
   const router = useRouter();
 
-  const handleDeleteClick = (attribute: any) => {
+  const handleDeleteClick = async (
+    attribute: Prisma.AtributoVariacionGetPayload<{}>
+  ) => {
+    const del = await deleteAttribute(attribute.id);
+
+    if (del.error) {
+      toast.error(`Error al eliminar el atributo ${del.error}`);
+    }
+    toast.success("Atributo eliminado correctamente");
     setAttributeToDelete(attribute);
     setDeleteDialogOpen(true);
   };
@@ -93,14 +104,8 @@ export function AttributesList({ attributes }: AttributesListProps) {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="icon" asChild>
-                  <Link
-                    href={`/admin/productos/atributos/${attribute.id}/editar`}
-                  >
-                    <Edit className="h-4 w-4" />
-                    <span className="sr-only">Editar</span>
-                  </Link>
-                </Button>
+                <EditAttributeModal attribute={attribute} />
+
                 <Button
                   variant="outline"
                   size="icon"

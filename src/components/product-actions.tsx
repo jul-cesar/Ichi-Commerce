@@ -18,11 +18,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useQuery } from "@tanstack/react-query";
-import { Edit, Eye, ListPlus, MoreHorizontal, Trash } from "lucide-react";
+import { Edit, Eye, MoreHorizontal, Trash } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { getCategories } from "./admin/actions";
+import { toast } from "sonner";
+import { deleteProduct, getCategories } from "./admin/actions";
 import { EditProductModal } from "./admin/EditProductModal";
 
 type ProductActionsProps = {
@@ -40,11 +41,12 @@ export function ProductActions({ product }: ProductActionsProps) {
 
   const handleDelete = async () => {
     try {
-      // Implement your delete logic here
-      // Example:
-      // await fetch(`/api/productos/${product.id}`, { method: 'DELETE' });
-
-      // Close dialog and refresh
+      const del = await deleteProduct(product.id);
+      if (!del) {
+        toast.error("Error al eliminar el producto");
+        return;
+      }
+      toast.success("Producto eliminado correctamente");
       setDeleteDialogOpen(false);
       router.refresh();
     } catch (error) {
@@ -81,13 +83,6 @@ export function ProductActions({ product }: ProductActionsProps) {
               </DropdownMenuItem>
             }
           />
-
-          <DropdownMenuItem asChild>
-            <Link href={`/admin/productos/${product.id}/variaciones`}>
-              <ListPlus className="mr-2 h-4 w-4" />
-              Gestionar variaciones
-            </Link>
-          </DropdownMenuItem>
 
           <DropdownMenuSeparator />
 

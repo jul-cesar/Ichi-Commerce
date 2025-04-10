@@ -12,7 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 import { z } from "zod";
 import { getAttributes, getCategories } from "../../actions";
 import { productDetailsSchema, useProductForm } from "../formContext";
@@ -45,7 +47,6 @@ export default function ProductDetailsStep() {
 
   const validateAndContinue = () => {
     try {
-      
       productDetailsSchema.parse({
         categoryId: state.categoryId,
         selectedAttributeIds: state.selectedAttributeIds,
@@ -75,62 +76,101 @@ export default function ProductDetailsStep() {
     }
   };
 
-  const { data: sampleCategories } = useQuery({
+  const { data: sampleCategories, isLoading: isCategoriesLoading } = useQuery({
     queryFn: async () => await getCategories(),
     queryKey: ["categories"],
   });
 
-  const { data: sampleAttributes } = useQuery({
+  const { data: sampleAttributes, isLoading: isAttributesLoading } = useQuery({
     queryFn: async () => await getAttributes(),
     queryKey: ["attributes"],
   });
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">Product Details</h2>
+      <h2 className="text-xl font-semibold">Detalles del producto</h2>
 
       <div className="space-y-6">
         <div>
-          <Label htmlFor="category">Category</Label>
-          <Select value={state.categoryId} onValueChange={handleCategoryChange}>
-            <SelectTrigger
-              id="category"
-              className={errors.categoryId ? "border-red-500" : ""}
-            >
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent>
-              {sampleCategories?.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.nombre}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.categoryId && (
-            <p className="text-red-500 text-sm mt-1">{errors.categoryId}</p>
+          <Label htmlFor="category">Categoria</Label>
+          {isCategoriesLoading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-10 w-full rounded-md" />
+              <div className="flex items-center space-x-2">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  Cargando categorías...
+                </span>
+              </div>
+            </div>
+          ) : (
+            <>
+              <Select
+                value={state.categoryId}
+                onValueChange={handleCategoryChange}
+              >
+                <SelectTrigger
+                  id="category"
+                  className={errors.categoryId ? "border-red-500" : ""}
+                >
+                  <SelectValue placeholder="Seleccionar categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sampleCategories?.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.categoryId && (
+                <p className="text-red-500 text-sm mt-1">{errors.categoryId}</p>
+              )}
+            </>
           )}
         </div>
 
         <div>
-          <Label className="block mb-2">Attributes</Label>
-          <div className="space-y-3">
-            {sampleAttributes?.map((attribute) => (
-              <div key={attribute.id} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`attribute-${attribute.id}`}
-                  checked={state.selectedAttributeIds.includes(attribute.id)}
-                  onCheckedChange={() => handleAttributeToggle(attribute.id)}
-                />
-                <Label
-                  htmlFor={`attribute-${attribute.id}`}
-                  className="cursor-pointer"
-                >
-                  {attribute.nombre}
-                </Label>
+          <Label className="block mb-2">Atributos</Label>
+          {isAttributesLoading ? (
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  Cargando atributos...
+                </span>
               </div>
-            ))}
-          </div>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center space-x-2">
+                  <Skeleton className="h-4 w-4 rounded" />
+                  <Skeleton className="h-4 w-32 rounded" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {sampleAttributes?.map((attribute) => (
+                <div key={attribute.id} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`attribute-${attribute.id}`}
+                    checked={state.selectedAttributeIds.includes(attribute.id)}
+                    onCheckedChange={() => handleAttributeToggle(attribute.id)}
+                  />
+                  <Label
+                    htmlFor={`attribute-${attribute.id}`}
+                    className="cursor-pointer"
+                  >
+                    {attribute.nombre}
+                  </Label>
+                </div>
+              ))}
+              {sampleAttributes?.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No hay atributos disponibles
+                </p>
+              )}
+            </div>
+          )}
           {errors.selectedAttributeIds && (
             <p className="text-red-500 text-sm mt-1">
               {errors.selectedAttributeIds}
@@ -140,7 +180,19 @@ export default function ProductDetailsStep() {
       </div>
 
       <div className="flex justify-end">
-        <Button onClick={validateAndContinue}>Next</Button>
+        <Button
+          onClick={validateAndContinue}
+          disabled={isCategoriesLoading || isAttributesLoading}
+        >
+          {isCategoriesLoading || isAttributesLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Cargando...
+            </>
+          ) : (
+            "Siguiente"
+          )}
+        </Button>
       </div>
     </div>
   );

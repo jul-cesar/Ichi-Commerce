@@ -28,6 +28,12 @@ const sidebarItems = [
     icon: Package,
   },
   {
+    title: "Atributos",
+    href: "/admin/atributos",
+    icon: Package,
+  },
+
+  {
     title: "Pedidos",
     href: "/admin/pedidos",
     icon: ShoppingCart,

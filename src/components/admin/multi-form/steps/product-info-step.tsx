@@ -64,7 +64,7 @@ export default function ProductInfoStep() {
             id="name"
             value={state.nombre}
             onChange={(e) => updateState({ nombre: e.target.value })}
-            placeholder="Enter product name"
+            placeholder="Ingresa el nombre del producto"
             className={errors.name ? "border-red-500" : ""}
           />
           {errors.nombre && (
@@ -78,7 +78,7 @@ export default function ProductInfoStep() {
             id="description"
             value={state.descripcion}
             onChange={(e) => updateState({ descripcion: e.target.value })}
-            placeholder="Enter product description"
+            placeholder="Ingresa la descripcion del producto"
             rows={4}
             className={errors.description ? "border-red-500" : ""}
           />

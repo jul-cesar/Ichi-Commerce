@@ -9,12 +9,14 @@ import {
 } from "@/components/ui/collapsible";
 import { Prisma } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronUp, Edit, Plus } from "lucide-react";
-import Link from "next/link";
+import { ChevronDown, ChevronUp, Delete, Edit, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { getAttributes } from "./admin/actions";
+import { toast } from "sonner";
+import { deleteVariacion, getAttributes } from "./admin/actions";
 import { AddVariationModal } from "./admin/add-variations";
 import { EditVariationModal } from "./admin/EditVariationModal";
+import { useConfirmationModal } from "./confirmationModal";
 
 type VariationsListProps = {
   product: Prisma.ProductoGetPayload<{
@@ -38,6 +40,8 @@ type VariationsListProps = {
 
 export function VariationsList({ product }: VariationsListProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+  const { confirm, ConfirmationModal } = useConfirmationModal();
 
   const { data: attributesList } = useQuery({
     queryFn: async () => await getAttributes(),
@@ -78,12 +82,12 @@ export function VariationsList({ product }: VariationsListProps) {
     return (
       <div className="flex items-center justify-between">
         <span className="text-muted-foreground">No hay variaciones</span>
-        <Button variant="outline" size="sm" asChild>
-          <Link href={`/admin/productos/${product.id}/variaciones/nueva`}>
+        <AddVariationModal attributes={attributesList} productId={product.id}>
+          <Button variant="outline" size="sm" asChild>
             <Plus className="h-3 w-3 mr-1" />
             Añadir
-          </Link>
-        </Button>
+          </Button>
+        </AddVariationModal>
       </div>
     );
   }
@@ -163,9 +167,35 @@ export function VariationsList({ product }: VariationsListProps) {
                 variation={variation}
                 productId={product.id}
               ></EditVariationModal>
+
+              <Button
+                variant="destructive"
+                size="icon"
+                className="ml-2"
+                onClick={async () => {
+                  if (
+                    await confirm({
+                      message:
+                        "¿Estás seguro de que deseas eliminar esta variación?",
+                    })
+                  ) {
+                    const result = await deleteVariacion(variation.id);
+                    if (result.success) {
+                      toast("Variación eliminada correctamente.");
+                      router.refresh();
+                    } else {
+                      toast(result.error || "Error al eliminar la variación.");
+                    }
+                  }
+                }}
+              >
+                <Delete />
+                <span className="sr-only">Eliminar variación</span>
+              </Button>
             </div>
           );
         })}
+        <ConfirmationModal />
       </CollapsibleContent>
     </Collapsible>
   );

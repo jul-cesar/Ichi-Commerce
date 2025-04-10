@@ -269,3 +269,126 @@ export const actualizarVariacion = async (data: {
     return { success: false, error: "Error al actualizar la variación." };
   }
 };
+
+export const deleteProduct = async (id: string) => {
+  try {
+    await prisma.producto.delete({
+      where: { id },
+    });
+    return true;
+  } catch (error) {
+    console.error("Error al eliminar el producto:", error);
+    return false;
+  }
+};
+
+export const deleteVariacion = async (id: string) => {
+  try {
+    await prisma.variacionProducto.delete({
+      where: { id },
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Error al eliminar la variación:", error);
+    return { success: false, error: "No se pudo eliminar la variación." };
+  }
+};
+
+export const addAttribute = async (data: {
+  nombre: string;
+  descripcion?: string;
+}) => {
+  try {
+    const newAttribute = await prisma.atributoVariacion.create({
+      data: {
+        nombre: data.nombre,
+        descripcion: data.descripcion || null,
+      },
+    });
+    return { success: true, attribute: newAttribute };
+  } catch (error) {
+    console.error("Error al agregar el atributo:", error);
+    return { success: false, error: "No se pudo agregar el atributo." };
+  }
+};
+
+export const addAttributeValue = async (attributeId: string, value: string) => {
+  try {
+    const newValues = await prisma.opcionAtributo.create({
+      data: {
+        valor: value,
+        atributoId: attributeId,
+      },
+    });
+    return { success: true, values: newValues };
+  } catch (error) {
+    console.error("Error al agregar valores al atributo:", error);
+    return { success: false, error: "No se pudieron agregar los valores." };
+  }
+};
+
+export const deleteAttribute = async (attributeId: string) => {
+  try {
+    // Eliminar el atributo y sus opciones asociadas
+    await prisma.atributoVariacion.delete({
+      where: { id: attributeId },
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Error al eliminar el atributo:", error);
+    return { success: false, error: "No se pudo eliminar el atributo." };
+  }
+};
+
+export const editAttributeOption = async (
+  optionId: string,
+  newValue: string
+) => {
+  try {
+    const updatedOption = await prisma.opcionAtributo.update({
+      where: { id: optionId },
+      data: { valor: newValue },
+    });
+    return { success: true, option: updatedOption };
+  } catch (error) {
+    console.error("Error al editar la opción del atributo:", error);
+    return {
+      success: false,
+      error: "No se pudo editar la opción del atributo.",
+    };
+  }
+};
+
+export const editAttribute = async (
+  attributeId: string,
+  data: { nombre?: string; descripcion?: string }
+) => {
+  try {
+    const updatedAttribute = await prisma.atributoVariacion.update({
+      where: { id: attributeId },
+      data: {
+        nombre: data.nombre || undefined,
+        descripcion: data.descripcion || undefined,
+      },
+    });
+    return { success: true, attribute: updatedAttribute };
+  } catch (error) {
+    console.error("Error al editar el atributo:", error);
+    return { success: false, error: "No se pudo editar el atributo." };
+  }
+};
+
+export const deleteAttributeOption = async (optionId: string) => {
+  try {
+    await prisma.opcionAtributo.delete({
+      where: { id: optionId },
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Error al eliminar la opción del atributo:", error);
+    return {
+      success: false,
+      error: "No se pudo eliminar la opción del atributo.",
+    };
+  }
+};
