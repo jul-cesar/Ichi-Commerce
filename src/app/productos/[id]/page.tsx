@@ -4,7 +4,10 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Minus, Plus, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { prisma } from "../../../../db/instance";
+import { addToCart } from "../actions";
 
 export default async function ProductPage({
   params,
@@ -150,70 +153,80 @@ export default async function ProductPage({
                 </p>
               </div>
               <AtributesSelect product={product} />
-              {/* <div>
-                <h3 className="font-medium mb-3">Talla</h3>
-                <div className="flex flex-wrap gap-2">
-                  {product.sizes.map((size) => (
-                    <Button
-                      key={size}
-                      variant="outline"
-                      size="sm"
-                      className="rounded-md"
-                    >
-                      {size}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-medium mb-3">Color</h3>
-                <div className="flex flex-wrap gap-2">
-                  {product.colors.map((color) => (
-                    <Button
-                      key={color}
-                      variant="outline"
-                      size="sm"
-                      className="rounded-md"
-                    >
-                      {color}
-                    </Button>
-                  ))}
-                </div>
-              </div> */}
-              <div>
-                <h3 className="font-medium mb-3">Cantidad</h3>
-                <div className="flex items-center">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8 rounded-r-none"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <div className="flex h-8 w-12 items-center justify-center border-y">
-                    1
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8 rounded-l-none"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-8">
-              <Button className="w-full" size="lg">
-                <ShoppingCart className="mr-2 h-4 w-4" />
-                Añadir al carrito
-              </Button>
+              <ClientProductActions product={product} />
             </div>
           </div>
         </div>
       </div>
     </main>
+  );
+}
+
+// Client component to handle state and actions
+("use client");
+function ClientProductActions({ product }: { product: any }) {
+  const [quantity, setQuantity] = useState(1);
+  const [selectedAttributes, setSelectedAttributes] = useState<
+    Record<string, string>
+  >({});
+  const router = useRouter();
+
+  const increaseQuantity = () => {
+    setQuantity((prev) => prev + 1);
+  };
+
+  const decreaseQuantity = () => {
+    if (quantity > 1) {
+      setQuantity((prev) => prev - 1);
+    }
+  };
+
+  const handleAddToCart = async () => {
+    try {
+      await addToCart({
+        productId: product.id,
+        quantity,
+        attributes: selectedAttributes,
+      });
+      router.refresh();
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+    }
+  };
+
+  return (
+    <>
+      <div>
+        <h3 className="font-medium mb-3">Cantidad</h3>
+        <div className="flex items-center">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8 rounded-r-none"
+            onClick={decreaseQuantity}
+          >
+            <Minus className="h-4 w-4" />
+          </Button>
+          <div className="flex h-8 w-12 items-center justify-center border-y">
+            {quantity}
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-8 w-8 rounded-l-none"
+            onClick={increaseQuantity}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <Button className="w-full" size="lg" onClick={handleAddToCart}>
+          <ShoppingCart className="mr-2 h-4 w-4" />
+          Añadir al carrito
+        </Button>
+      </div>
+    </>
   );
 }

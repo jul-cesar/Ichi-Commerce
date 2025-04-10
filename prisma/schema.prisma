@@ -19,6 +19,8 @@ model User {
   updatedAt     DateTime
   sessions      Session[]
   accounts      Account[]
+  cart          Cart? // Relación con el carrito
+  orders        Order[] // Relación con órdenes
 
   @@map("user")
 }
@@ -69,7 +71,6 @@ model Verification {
 }
 
 // schema.prisma
-
 model Producto {
   id              String                    @id @default(uuid())
   nombre          String
@@ -113,6 +114,8 @@ model VariacionProducto {
   updatedAt  DateTime                  @updatedAt
   atributos  VariacionAtributo[]
   imagenes   ImagenVariacionProducto[]
+  cartItems  CartItem[] // Relación con items en carritos
+  orderItems OrderItem[] // Relación con items en órdenes
 }
 
 model VariacionAtributo {
@@ -138,4 +141,55 @@ model OpcionAtributo {
   valor             String // Valor de la opción (Ej. 'Rojo', 'M', 'Algodón', etc.)
   atributo          AtributoVariacion   @relation(fields: [atributoId], references: [id])
   VariacionAtributo VariacionAtributo[]
+}
+
+// Nuevos modelos para el carrito y órdenes
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id             String            @id @default(uuid())
+  cartId         String?
+  cart           Cart?             @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variacionId    String
+  variacion      VariacionProducto @relation(fields: [variacionId], references: [id])
+  cantidad       Int
+  precioUnitario Float
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([cartId, variacionId])
+}
+
+model Order {
+  id               String      @id @default(uuid())
+  userId           String
+  user             User        @relation(fields: [userId], references: [id])
+  items            OrderItem[]
+  estado           String // "pendiente", "pagado", "enviado", "entregado", "cancelado"
+  direccionEnvio   String?
+  metodoPago       String?
+  montoTotal       Float
+  fechaCompra      DateTime    @default(now())
+  fechaActualizada DateTime    @updatedAt
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+}
+
+model OrderItem {
+  id             String            @id @default(uuid())
+  orderId        String
+  order          Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variacionId    String
+  variacion      VariacionProducto @relation(fields: [variacionId], references: [id])
+  cantidad       Int
+  precioUnitario Float
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
 }
