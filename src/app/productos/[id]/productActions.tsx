@@ -1,166 +1,176 @@
 "use client";
 
+import { addToCart } from "@/app/productos/actions";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { authClient } from "@/lib/client";
-import { Prisma } from "@prisma/client";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { Minus, Plus, ShoppingCart } from "lucide-react";
-import { useRouter } from "next/navigation";
+import {
+  AlertCircle,
+  MinusCircle,
+  PlusCircle,
+  ShoppingCart,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { addToCart } from "../actions";
 
-export function ClientProductActions({
+type ClientProductActionsProps = {
+  product: {
+    id: string;
+    nombre: string;
+    precio: number;
+  };
+  selectedAttributes: { [key: string]: string }; // Selected attributes from AtributesSelect
+};
+
+export const ClientProductActions = ({
   product,
-}: {
-  product: Prisma.ProductoGetPayload<{
-    include: {
-      variaciones: {
-        include: {
-          atributos: {
-            include: {
-              valorAtributo: {
-                include: {
-                  atributo: true;
-                };
-              };
-            };
-          };
-        };
-      };
-    };
-  }>;
-}) {
-  const [quantity, setQuantity] = useState(1);
-  const [selectedAttributes, setSelectedAttributes] = useState<
-    Record<string, string>
-  >({});
-  const router = useRouter();
+  selectedAttributes,
+}: ClientProductActionsProps) => {
+  const [loading, setLoading] = useState(false);
+  const [canAddToCart, setCanAddToCart] = useState(false);
+  const [quantity, setQuantity] = useState(1); // State for quantity
   const queryClient = useQueryClient();
+  const [attributesNeeded, setAttributesNeeded] = useState(2);
 
-  // Inicializar atributos seleccionados con valores predeterminados
+  // Validate that at least two attributes are selected
   useEffect(() => {
-    if (product.variaciones) {
-      const initialAttributes: Record<string, string> = {};
-      product.variaciones.forEach((variation) => {
-        variation.atributos.forEach((attribute) => {
-          const attributeName = attribute.valorAtributo.atributo.nombre;
-          const attributeValue = attribute.valorAtributo.valor;
-          if (!initialAttributes[attributeName]) {
-            initialAttributes[attributeName] = attributeValue; // Selecciona el primer valor encontrado
-          }
-        });
-      });
-      setSelectedAttributes(initialAttributes);
-    }
-  }, [product.variaciones]);
-
-  const increaseQuantity = () => {
-    setQuantity((prev) => prev + 1);
-  };
-
-  const decreaseQuantity = () => {
-    if (quantity > 1) {
-      setQuantity((prev) => prev - 1);
-    }
-  };
-
-  const handleAttributeChange = (attributeName: string, value: string) => {
-    setSelectedAttributes((prev) => ({
-      ...prev,
-      [attributeName]: value,
-    }));
-  };
-
-  const { data } = authClient.useSession();
+    const selectedCount = Object.keys(selectedAttributes).length;
+    const hasEnoughAttributes = selectedCount >= 2;
+    setCanAddToCart(hasEnoughAttributes);
+    setAttributesNeeded(Math.max(0, 2 - selectedCount));
+  }, [selectedAttributes]);
 
   const handleAddToCart = async () => {
+    if (!canAddToCart) return; // Prevent adding to cart if validation fails
+
+    setLoading(true);
+
     try {
-      const cart = await addToCart({
+      const result = await addToCart({
         productId: product.id,
-        quantity,
-        userId: data?.user.id ?? "",
-        attributes: selectedAttributes,
+        quantity, // Pass the selected quantity
+        attributes: selectedAttributes, // Pass selected attributes
       });
-      if (cart.error) {
-        toast.error(cart.error);
-        return;
+
+      if (result.success) {
+        toast.success("Producto agregado al carrito");
+        queryClient.invalidateQueries({ queryKey: ["cartItems"] }); // Invalidate cart items query to refresh
+      } else {
+        toast.error("Error al agregar al carrito:", result.error);
       }
-      toast.success("Producto añadido al carrito");
-      queryClient.invalidateQueries({ queryKey: ["cartItems"] });
-      router.refresh();
     } catch (error) {
-      console.error("Error adding to cart:", error);
+      console.error("Error al agregar al carrito:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleQuantityChange = (newQuantity: number) => {
+    if (newQuantity > 0) {
+      setQuantity(newQuantity);
+    }
+  };
+
+  // Calculate total price based on quantity
+  const totalPrice = product.precio * quantity;
+
   return (
-    <>
-      <div>
-        <h3 className="font-medium mb-3">Cantidad</h3>
-        <div className="flex items-center">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 rounded-r-none"
-            onClick={decreaseQuantity}
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <div className="flex h-8 w-12 items-center justify-center border-y">
-            {quantity}
+    <Card className="p-5 space-y-6 border-muted-foreground/20">
+      {/* Price and quantity section */}
+      <div className="flex flex-col space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Precio unitario</p>
+            <p className="text-2xl font-bold">
+              ${product.precio.toLocaleString("es-CO")}
+            </p>
           </div>
+
+          <div className="space-y-1 text-right">
+            <p className="text-sm text-muted-foreground">Total</p>
+            <p className="text-2xl font-bold text-primary">
+              ${totalPrice.toLocaleString("es-CO")}
+            </p>
+          </div>
+        </div>
+
+        {/* Quantity selector */}
+        <div className="flex items-center justify-center mt-2">
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
-            className="h-8 w-8 rounded-l-none"
-            onClick={increaseQuantity}
+            onClick={() => handleQuantityChange(quantity - 1)}
+            disabled={quantity <= 1 || loading}
+            className="h-10 w-10 rounded-full"
           >
-            <Plus className="h-4 w-4" />
+            <MinusCircle
+              className={cn(
+                "h-6 w-6",
+                quantity <= 1
+                  ? "text-muted-foreground/40"
+                  : "text-muted-foreground"
+              )}
+            />
+            <span className="sr-only">Disminuir cantidad</span>
+          </Button>
+
+          <div className="w-16 text-center">
+            <span className="text-xl font-semibold">{quantity}</span>
+          </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleQuantityChange(quantity + 1)}
+            disabled={loading}
+            className="h-10 w-10 rounded-full"
+          >
+            <PlusCircle className="h-6 w-6 text-primary" />
+            <span className="sr-only">Aumentar cantidad</span>
           </Button>
         </div>
       </div>
 
-      <div className="mt-4">
-        <h3 className="font-medium mb-3">Atributos</h3>
-        {Object.keys(selectedAttributes).map((attributeName) => (
-          <div key={attributeName} className="mb-2">
-            <label className="block text-sm font-medium mb-1">
-              {attributeName}
-            </label>
-            <select
-              className="w-full border rounded p-2"
-              value={selectedAttributes[attributeName] || ""}
-              onChange={(e) =>
-                handleAttributeChange(attributeName, e.target.value)
-              }
-            >
-              {product.variaciones
-                .flatMap((variation) =>
-                  variation.atributos.filter(
-                    (attr) =>
-                      attr.valorAtributo.atributo.nombre === attributeName
-                  )
-                )
-                .map((attr) => (
-                  <option
-                    key={attr.valorAtributo.valor}
-                    value={attr.valorAtributo.valor}
-                  >
-                    {attr.valorAtributo.valor}
-                  </option>
-                ))}
-            </select>
+      {/* Selected attributes feedback */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-medium">Atributos seleccionados</p>
+          <Badge
+            variant={canAddToCart ? "default" : "destructive"}
+            className="text-xs"
+          >
+            {canAddToCart ? "Completo" : `Faltan ${attributesNeeded}`}
+          </Badge>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(selectedAttributes).map(([key, value]) => (
+            <Badge key={key} variant="outline" className="text-xs">
+              {key}: {value}
+            </Badge>
+          ))}
+        </div>
+
+        {!canAddToCart && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+            <AlertCircle className="h-4 w-4 text-destructive" />
+            <span>Selecciona al menos 2 atributos para continuar</span>
           </div>
-        ))}
+        )}
       </div>
 
-      <div className="mt-8">
-        <Button className="w-full" size="lg" onClick={handleAddToCart}>
-          <ShoppingCart className="mr-2 h-4 w-4" />
-          Añadir al carrito
-        </Button>
-      </div>
-    </>
+      {/* Add to cart button */}
+      <Button
+        onClick={handleAddToCart}
+        disabled={loading || !canAddToCart}
+        className="w-full h-12 text-base font-medium"
+        size="lg"
+      >
+        <ShoppingCart className="mr-2 h-5 w-5" />
+        {loading ? "Agregando..." : "Agregar al carrito"}
+      </Button>
+    </Card>
   );
-}
+};

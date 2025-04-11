@@ -80,7 +80,7 @@ export const guardarProducto = async (inputData: ProductFormState) => {
       descripcion: inputData.descripcion,
       precio: parseFloat(inputData.precio),
       categoriaId: inputData.categoryId,
-      imagenPrincipal: "",
+      imagenPrincipal: inputData.imagenPrincipal,
     },
   });
 

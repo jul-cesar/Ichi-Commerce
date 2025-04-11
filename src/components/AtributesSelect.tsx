@@ -4,50 +4,42 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import type { Prisma } from "@prisma/client";
 import { Check, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type AtributesSelectProps = {
-  product: Prisma.ProductoGetPayload<{
-    include: {
-      variaciones: {
-        include: {
-          atributos: {
-            include: {
-              valorAtributo: {
-                include: {
-                  atributo: true;
-                };
-              };
-            };
-          };
+  product: {
+    variaciones: {
+      id: string;
+      atributos: {
+        valorAtributo: {
+          atributo: { nombre: string };
+          valor: string;
         };
-      };
-    };
-  }> | null;
+      }[];
+    }[];
+  } | null;
+  onSelectionChange?: (selecciones: { [key: string]: string }) => void; // Callback to send selected attributes
 };
 
-const AtributesSelect = ({ product }: AtributesSelectProps) => {
-  // Store all attribute names and their possible values
+const AtributesSelect = ({
+  product,
+  onSelectionChange,
+}: AtributesSelectProps) => {
   const [atributos, setAtributos] = useState<string[]>([]);
   const [todasLasOpciones, setTodasLasOpciones] = useState<{
     [key: string]: string[];
   }>({});
-
-  // Store the current selections
   const [selecciones, setSelecciones] = useState<{
     [key: string]: string;
   }>({});
 
-  // Initialize attributes and options when product changes
   useEffect(() => {
     if (!product) return;
 
     const atributosEncontrados: string[] = [];
     const opcionesPorAtributo: { [key: string]: string[] } = {};
 
-    // Extract all attributes and their values from the product
     product.variaciones.forEach((variacion) => {
       variacion.atributos.forEach((atributo) => {
         const nombreAtributo = atributo.valorAtributo.atributo.nombre;
@@ -71,27 +63,27 @@ const AtributesSelect = ({ product }: AtributesSelectProps) => {
     setTodasLasOpciones(opcionesPorAtributo);
   }, [product]);
 
-  // Get available options for a specific attribute based on current selections
+  useEffect(() => {
+    if (onSelectionChange) {
+      onSelectionChange(selecciones); // Notify parent component of selection changes
+    }
+  }, [selecciones, onSelectionChange]);
+
   const getOpcionesDisponibles = (atributoActual: string) => {
     if (!product) return [];
 
-    // If no selections are made, all options are available
     if (Object.keys(selecciones).length === 0) {
       return todasLasOpciones[atributoActual] || [];
     }
 
-    // Get all selections except the current attribute
     const otrasSelecciones = { ...selecciones };
     delete otrasSelecciones[atributoActual];
 
-    // If no other selections are made, all options for this attribute are available
     if (Object.keys(otrasSelecciones).length === 0) {
       return todasLasOpciones[atributoActual] || [];
     }
 
-    // Filter variations that match other selections
     const variacionesValidas = product.variaciones.filter((variacion) => {
-      // Check if this variation matches all other selected attributes
       return Object.entries(otrasSelecciones).every(
         ([nombreAtributo, valorSeleccionado]) => {
           return variacion.atributos.some(
@@ -103,7 +95,6 @@ const AtributesSelect = ({ product }: AtributesSelectProps) => {
       );
     });
 
-    // Extract available options for the current attribute from valid variations
     const opcionesDisponibles: string[] = [];
     variacionesValidas.forEach((variacion) => {
       variacion.atributos.forEach((atributo) => {
@@ -119,12 +110,10 @@ const AtributesSelect = ({ product }: AtributesSelectProps) => {
     return opcionesDisponibles;
   };
 
-  // Handle selection change for an attribute
   const handleSeleccion = (nombreAtributo: string, valor: string) => {
     const nuevasSelecciones = { ...selecciones };
 
     if (valor === selecciones[nombreAtributo]) {
-      // If clicking the same value, deselect it
       delete nuevasSelecciones[nombreAtributo];
     } else {
       nuevasSelecciones[nombreAtributo] = valor;
@@ -133,12 +122,10 @@ const AtributesSelect = ({ product }: AtributesSelectProps) => {
     setSelecciones(nuevasSelecciones);
   };
 
-  // Reset all selections
   const resetSelecciones = () => {
     setSelecciones({});
   };
 
-  // Check if a color name is a valid CSS color
   const isValidColor = (color: string): boolean => {
     const lowerColor = color.toLowerCase();
     const basicColors = [
@@ -161,13 +148,11 @@ const AtributesSelect = ({ product }: AtributesSelectProps) => {
     return basicColors.includes(lowerColor);
   };
 
-  // Get background color for color chips
   const getColorBackground = (color: string): string => {
     if (isValidColor(color)) {
       return color.toLowerCase();
     }
 
-    // Map Spanish color names to English if needed
     const colorMap: Record<string, string> = {
       negro: "black",
       blanco: "white",
@@ -186,14 +171,12 @@ const AtributesSelect = ({ product }: AtributesSelectProps) => {
       return colorMap[color.toLowerCase()];
     }
 
-    // Default to a gradient for unknown colors
     return "linear-gradient(to right, #f6d365 0%, #fda085 100%)";
   };
 
   return (
     <Card className="w-full">
       <CardContent className="pt-6">
-        {/* Selected attributes display */}
         <div className="flex flex-wrap gap-2 mb-4">
           {Object.entries(selecciones).map(([atributo, valor]) => (
             <Badge
@@ -224,7 +207,6 @@ const AtributesSelect = ({ product }: AtributesSelectProps) => {
           )}
         </div>
 
-        {/* Attributes selection */}
         {atributos.map((nombreAtributo) => {
           const opcionesDisponibles = getOpcionesDisponibles(nombreAtributo);
           const todasLasOpcionesAtributo =
@@ -248,7 +230,6 @@ const AtributesSelect = ({ product }: AtributesSelectProps) => {
                     selecciones[nombreAtributo] === valorOpcion;
 
                   if (esColor) {
-                    // Render color options as color chips
                     return (
                       <button
                         key={valorOpcion}
@@ -287,7 +268,6 @@ const AtributesSelect = ({ product }: AtributesSelectProps) => {
                       </button>
                     );
                   } else {
-                    // Render other attributes as buttons/chips
                     return (
                       <button
                         key={valorOpcion}

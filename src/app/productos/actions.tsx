@@ -17,6 +17,7 @@ export async function addToCart({
   attributes?: Record<string, string>;
 }) {
   try {
+    console.log("attributos", attributes);
     const cookieStore = await cookies();
     let cartId = cookieStore.get("cartId")?.value;
 
@@ -115,23 +116,17 @@ export async function addToCart({
       if (matchingVariation) {
         variationId = matchingVariation.id;
       } else {
-        console.error(
-          "No se encontró una variación que coincida con los atributos:",
-          attributes
-        );
         throw new Error(
-          "No se encontró una variación de producto válida.",
-          attributes
+          "No se encontró una variación que coincida con los atributos proporcionados."
         );
       }
     } else {
-      console.error(
+      throw new Error(
         "No se proporcionaron atributos para buscar una variación."
       );
-      throw new Error("No se encontró una variación de producto válida.");
     }
 
-    // Validar que variationId sea válido
+    // Validate that the variationId is valid
     const variationExists = await prisma.variacionProducto.findUnique({
       where: { id: variationId },
     });
@@ -145,7 +140,7 @@ export async function addToCart({
     const existingItem = await prisma.cartItem.findFirst({
       where: {
         cartId: cart.id,
-        variacionId: variationId,
+        variacionId: variationId, // Ensure the check is based on the correct variation
       },
     });
 

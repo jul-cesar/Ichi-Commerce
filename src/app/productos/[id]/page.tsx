@@ -1,17 +1,15 @@
-import AtributesSelect from "@/components/AtributesSelect";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "../../../../db/instance";
-import { ClientProductActions } from "./productActions";
+import ProductClient from "./productClient";
 
 export default async function ProductPage({
   params,
 }: {
   params: { id: string };
 }) {
-  // Find the product with the matching ID
   const product = await prisma.producto.findUnique({
     where: { id: params.id },
     include: {
@@ -22,7 +20,7 @@ export default async function ProductPage({
             include: {
               valorAtributo: {
                 include: {
-                  atributo: true, // Incluimos el modelo AtributoVariacion
+                  atributo: true,
                 },
               },
             },
@@ -37,38 +35,7 @@ export default async function ProductPage({
     return;
   }
 
-  type OpcionesPorAtributo = {
-    [key: string]: string[]; // Clave: nombre del atributo, Valor: array de opciones
-  };
-
-  const opcionesPorAtributo: OpcionesPorAtributo = {};
-
-  product.variaciones.forEach((variacion) => {
-    variacion.atributos.forEach((atributo) => {
-      const nombreAtributo = atributo.valorAtributo.atributo.nombre; // Accedemos al nombre del atributo
-      const valorOpcion = atributo.valorAtributo.valor;
-
-      if (!opcionesPorAtributo[nombreAtributo]) {
-        opcionesPorAtributo[nombreAtributo] = [];
-      }
-
-      if (!opcionesPorAtributo[nombreAtributo].includes(valorOpcion)) {
-        opcionesPorAtributo[nombreAtributo].push(valorOpcion);
-      }
-    });
-  });
-
-  console.log(product);
-
-  let salida = "";
-  for (const nombreAtributo in opcionesPorAtributo) {
-    salida += `${nombreAtributo}: ${opcionesPorAtributo[nombreAtributo].join(
-      ", "
-    )}  `;
-  }
-
   const obtenerStockTotalproduct = async (productId: string) => {
-    // Obtener todas las variaciones del product
     const variaciones = await prisma.variacionProducto.findMany({
       where: {
         productoId: productId,
@@ -78,7 +45,6 @@ export default async function ProductPage({
       },
     });
 
-    // Sumar el stock de todas las variaciones
     const stockTotal = variaciones.reduce((total, variacion) => {
       return total + variacion.stock;
     }, 0);
@@ -87,17 +53,6 @@ export default async function ProductPage({
   };
 
   const stock = await obtenerStockTotalproduct(product?.id || "");
-
-  let htmlSalida = "";
-
-  for (const nombreAtributo in opcionesPorAtributo) {
-    htmlSalida += `<h1>${nombreAtributo}</h1>`;
-    htmlSalida += `<select>`;
-    opcionesPorAtributo[nombreAtributo].forEach((valorOpcion) => {
-      htmlSalida += `<option value="${valorOpcion}">${valorOpcion}</option>`;
-    });
-    htmlSalida += `</select><br>`;
-  }
 
   return (
     <main className="flex min-h-screen flex-col">
@@ -130,7 +85,7 @@ export default async function ProductPage({
                 {product?.categoria.nombre}
               </p>
             </div>
-
+            {/* 
             <div className="mt-4">
               <p className="text-2xl font-semibold">
                 ${product?.precio.toLocaleString("es-CO")}
@@ -138,7 +93,7 @@ export default async function ProductPage({
               <p className="text-sm text-muted-foreground mt-1">
                 {stock > 0 ? `${stock} disponibles` : "Sin stock"}
               </p>
-            </div>
+            </div> */}
 
             <Separator className="my-6" />
 
@@ -149,8 +104,9 @@ export default async function ProductPage({
                   {product?.descripcion}
                 </p>
               </div>
-              <AtributesSelect product={product} />
-              <ClientProductActions product={product} />
+
+              {/* Pass product data to the client component */}
+              <ProductClient product={product} />
             </div>
           </div>
         </div>
@@ -158,5 +114,3 @@ export default async function ProductPage({
     </main>
   );
 }
-
-// Client component to handle state and actions

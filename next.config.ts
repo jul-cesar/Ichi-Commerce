@@ -8,6 +8,16 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
 },
+images:{
+  remotePatterns: [
+    {
+     
+      hostname: "8ec8whaldy.ufs.sh",
+     
+    },
+   
+  ],
+}
 };
 
 export default nextConfig;

@@ -23,9 +23,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DataTableFacetedFilter } from "./data-table-faceted-header";
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableViewOptions } from "./data-table-view-options";
-import { DataTableFacetedFilter } from "./data-table-faceted-header";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -71,7 +71,7 @@ export function DataTable<TData, TValue>({
   }));
 
   return (
-    <div className="space-y-4">
+    <div className="w-full p-2">
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
         <Input
           placeholder="Buscar productos..."

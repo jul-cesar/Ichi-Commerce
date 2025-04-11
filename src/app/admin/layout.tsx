@@ -8,12 +8,12 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[auto_1fr]">
+    <div className=" min-h-screen w-full md:grid-cols-[auto_1fr]">
       <AdminSidebar />
 
       <div className="flex flex-col">
         <AdminHeader />
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+        <main className="w-full p-2 md:p-6">{children}</main>
       </div>
     </div>
   );

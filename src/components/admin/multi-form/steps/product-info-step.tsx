@@ -1,30 +1,19 @@
 "use client";
 
-import type React from "react";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ImagePlus, X } from "lucide-react";
-import Image from "next/image";
+import { UploadButton } from "@/utils/uploadthing";
+import { X } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { z } from "zod";
 import { productInfoSchema, useProductForm } from "../formContext";
 
 export default function ProductInfoStep() {
   const { state, updateState, nextStep } = useProductForm();
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      updateState({ imagenPrincipal: e.target.files[0] });
-    }
-  };
-
-  const removeImage = () => {
-    updateState({ imagenPrincipal: null });
-  };
 
   const validateAndContinue = () => {
     try {
@@ -51,6 +40,10 @@ export default function ProductInfoStep() {
         setErrors(formattedErrors);
       }
     }
+  };
+
+  const removeImage = () => {
+    updateState({ imagenPrincipal: "" });
   };
 
   return (
@@ -107,13 +100,9 @@ export default function ProductInfoStep() {
 
           {state.imagenPrincipal ? (
             <div className="mt-2 relative w-40 h-40 border rounded-md overflow-hidden">
-              <Image
-                src={
-                  URL.createObjectURL(state.imagenPrincipal) ||
-                  "/placeholder.svg"
-                }
+              <img
+                src={state.imagenPrincipal}
                 alt="Product preview"
-                fill
                 className="object-cover"
               />
               <Button
@@ -128,22 +117,20 @@ export default function ProductInfoStep() {
             </div>
           ) : (
             <div className="mt-2">
-              <Label
-                htmlFor="image-upload"
-                className="flex flex-col items-center justify-center w-40 h-40 border-2 border-dashed rounded-md cursor-pointer hover:bg-muted/50"
-              >
-                <ImagePlus className="w-8 h-8 text-muted-foreground" />
-                <span className="mt-2 text-sm text-muted-foreground">
-                  Subir imagen
-                </span>
-                <Input
-                  id="image-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                />
-              </Label>
+              <UploadButton
+                className="bg-blue-500 text-black"
+                endpoint="imageUploader"
+                onClientUploadComplete={(res) => {
+                  if (res && res.length > 0) {
+                    // Update the state with the uploaded image URL
+                    updateState({ imagenPrincipal: res[0].ufsUrl });
+                  }
+                  toast.success("Imagen subida correctamente");
+                }}
+                onUploadError={(error: Error) => {
+                  toast.error(`Error al subir la imagen: ${error.message}`);
+                }}
+              />
               {errors.imagenPrincipal && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors.imagenPrincipal}

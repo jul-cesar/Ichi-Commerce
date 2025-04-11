@@ -25,7 +25,7 @@ export type ProductFormState = {
   nombre: string;
   descripcion: string;
   precio: string;
-  imagenPrincipal: File | null;
+  imagenPrincipal: string;
 
   categoryId: string;
   selectedAttributeIds: string[];
@@ -40,7 +40,7 @@ const initialState: ProductFormState = {
   nombre: "",
   descripcion: "",
   precio: "",
-  imagenPrincipal: null,
+  imagenPrincipal: "",
   categoryId: "",
   selectedAttributeIds: [],
   variations: [],
@@ -143,13 +143,7 @@ export const productInfoSchema = z.object({
   precio: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
     message: "El precio debe ser un número positivo",
   }),
-  imagenPrincipal: z
-    .instanceof(File)
-    .nullable()
-    .refine((file) => {
-      if (!file) return false;
-      return file.size < 5 * 1024 * 1024; // 5MB
-    }, "La imagen debe ser menor de 5MB"),
+  imagenPrincipal: z.string().min(1, "Por favor, selecciona una imagen"),
 });
 
 export const productDetailsSchema = z.object({
