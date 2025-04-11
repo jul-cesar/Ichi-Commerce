@@ -12,26 +12,51 @@ import {
 import { LogOut, User } from "lucide-react";
 import Link from "next/link";
 
+import { clearCartCookie } from "@/app/auth/actions";
+import { mergeCartOnLogin } from "@/app/productos/actions";
 import { authClient } from "@/lib/client";
+import { useEffect } from "react";
 import CartSheet from "./CartSheet";
 import MobileMenu from "./MobileMenu";
 import SearchDialog from "./SearchDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 const signIn = async () => {
-  await authClient.signIn.social({
+  const userLog = await authClient.signIn.social({
     provider: "google",
   });
 };
 
 const signOut = async () => {
   await authClient.signOut();
+
+  // Clear the cartId cookie
+  await clearCartCookie();
 };
 
 export default function Navbar() {
   const { data: session } = authClient.useSession();
 
-  
+  useEffect(() => {
+    const mergeCart = async () => {
+      if (session?.user?.id) {
+        try {
+          const merged = await mergeCartOnLogin(session.user.id);
+          if (merged.success) {
+            console.log("Carrito de invitado fusionado con el de usuario");
+          } else {
+            console.error(
+              "Error al fusionar el carrito de invitado con el de usuario"
+            );
+          }
+        } catch (error) {
+          console.error("Error al intentar fusionar el carrito:", error);
+        }
+      }
+    };
+
+    mergeCart();
+  }, [session?.user?.id]);
 
   return (
     <header className="px-5 sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

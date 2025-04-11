@@ -12,6 +12,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { authClient } from "@/lib/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
 import Image from "next/image";
@@ -20,9 +21,11 @@ import { toast } from "sonner";
 import { Separator } from "./ui/separator";
 
 export default function CartSheet() {
+  const { data: session } = authClient.useSession();
+
   const { data: cartItems = [], isLoading } = useQuery({
-    queryKey: ["cartItems"],
-    queryFn: getCartItems,
+    queryKey: ["cartItems", session?.user?.id], // Include userId in query key
+    queryFn: () => getCartItems(session?.user?.id), // Pass userId to getCartItems
     refetchOnWindowFocus: true,
   });
 

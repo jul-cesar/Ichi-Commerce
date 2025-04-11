@@ -13,43 +13,62 @@ export async function addToCart({
 }: {
   productId: string;
   quantity: number;
-  userId: string;
+  userId?: string; // Make userId optional for anonymous users
   attributes?: Record<string, string>;
 }) {
   try {
     const cookieStore = await cookies();
     let cartId = cookieStore.get("cartId")?.value;
 
-    // Verifica si el usuario existe en la base de datos
-    const userExists = await prisma.user.findUnique({ where: { id: userId } });
-    if (!userExists) {
-      throw new Error("El usuario no existe en la base de datos.");
+    let cart = null;
+
+    if (cartId) {
+      // Check if the cartId corresponds to a valid cart by id or sessionId
+      cart = await prisma.cart.findFirst({
+        where: {
+          OR: [
+            { id: cartId }, // Logged-in user's cart
+            { sessionId: cartId }, // Anonymous user's cart
+          ],
+        },
+      });
     }
 
-    // Check if cart exists, otherwise create a new one
-    let cart = cartId
-      ? await prisma.cart.findUnique({ where: { id: cartId } })
-      : null;
+    if (!cart && userId) {
+      // If no cart is found but the user is logged in, fetch the user's cart
+      cart = await prisma.cart.findUnique({ where: { userId } });
+    }
 
     if (!cart) {
+      // Generate a new sessionId if the cart does not exist
+      const newSessionId = crypto.randomUUID();
       cart = await prisma.cart.create({
         data: {
-          userId: userId,
+          userId: userId || null, // Associate with user if logged in
+          sessionId: userId ? null : newSessionId, // Use sessionId for anonymous users
           createdAt: new Date(),
         },
       });
 
-      // Save the new cart ID in cookie
-      await cookieStore.set({
-        name: "cartId",
-        value: cart.id,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 60 * 60 * 24 * 30, // 30 días
-        path: "/",
-      });
+      // Save the new sessionId in the cookie
+      if (!userId) {
+        await cookieStore.set({
+          name: "cartId",
+          value: newSessionId,
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          maxAge: 60 * 60 * 24 * 30, // 30 days
+          path: "/",
+        });
 
-      cartId = cart.id;
+        cartId = newSessionId;
+      }
+    } else if (userId && !cart.userId) {
+      // If the user logs in and the cart is anonymous, associate it with the user
+      cart = await prisma.cart.update({
+        where: { id: cart.id },
+        data: { userId },
+      });
     }
 
     // Find the specific variation based on attributes
@@ -125,7 +144,7 @@ export async function addToCart({
     // Check if item already exists in cart
     const existingItem = await prisma.cartItem.findFirst({
       where: {
-        cartId: cartId!,
+        cartId: cart.id,
         variacionId: variationId,
       },
     });
@@ -138,10 +157,10 @@ export async function addToCart({
     } else {
       await prisma.cartItem.create({
         data: {
-          cartId: cartId!,
+          cartId: cart.id,
           variacionId: variationId,
           cantidad: quantity,
-          precioUnitario: 100, // Reemplaza con el precio real de la variación
+          precioUnitario: 100, // Replace with the actual price of the variation
         },
       });
     }
@@ -157,22 +176,98 @@ export async function addToCart({
   }
 }
 
-// Get cart items for the current user
-export async function getCartItems() {
+// Merge anonymous cart with user cart upon login
+export async function mergeCartOnLogin(userId: string) {
   try {
     const cookieStore = await cookies();
-    let cartId = cookieStore.get("cartId")?.value;
+    const cartId = cookieStore.get("cartId")?.value;
 
-    let cart = cartId
-      ? await prisma.cart.findUnique({ where: { id: cartId } })
+    if (!cartId) return { success: true }; // No anonymous cart to merge
+
+    const anonymousCart = await prisma.cart.findUnique({
+      where: { sessionId: cartId },
+      include: { items: true },
+    });
+
+    if (!anonymousCart) return { success: true }; // No anonymous cart to merge
+
+    let userCart = await prisma.cart.findUnique({
+      where: { userId },
+      include: { items: true },
+    });
+
+    if (!userCart) {
+      userCart = await prisma.cart.create({
+        data: {
+          userId,
+          createdAt: new Date(),
+        },
+        include: { items: true },
+      });
+    }
+
+    // Merge items from anonymous cart to user cart
+    for (const item of anonymousCart.items) {
+      const existingItem = userCart.items.find(
+        (userItem) => userItem.variacionId === item.variacionId
+      );
+
+      if (existingItem) {
+        await prisma.cartItem.update({
+          where: { id: existingItem.id },
+          data: { cantidad: existingItem.cantidad + item.cantidad },
+        });
+      } else {
+        await prisma.cartItem.create({
+          data: {
+            cartId: userCart.id,
+            variacionId: item.variacionId,
+            cantidad: item.cantidad,
+            precioUnitario: item.precioUnitario,
+          },
+        });
+      }
+    }
+
+    // Delete the anonymous cart
+    await prisma.cart.delete({ where: { id: anonymousCart.id } });
+
+    // Update the cookie to reflect the user's cart
+    await cookieStore.set({
+      name: "cartId",
+      value: userCart.id,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      path: "/",
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error merging cart on login:", error);
+    return { success: false, error: error.message || "Failed to merge cart" };
+  }
+}
+
+// Get cart items for the current user
+export async function getCartItems(userId?: string) {
+  try {
+    const cookieStore = await cookies();
+    const sessionId = cookieStore.get("cartId")?.value;
+
+    // Determine whether to fetch the cart by userId or sessionId
+    const cart = userId
+      ? await prisma.cart.findUnique({ where: { userId } }) // Logged-in user
+      : sessionId
+      ? await prisma.cart.findUnique({ where: { sessionId } }) // Anonymous user
       : null;
 
     if (!cart) {
-      return [];
+      return []; // No cart found
     }
 
     const cartItems = await prisma.cartItem.findMany({
-      where: { cartId: cartId },
+      where: { cartId: cart.id },
       include: {
         variacion: {
           include: {

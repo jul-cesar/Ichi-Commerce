@@ -146,8 +146,9 @@ model OpcionAtributo {
 // Nuevos modelos para el carrito y órdenes
 model Cart {
   id        String     @id @default(uuid())
-  userId    String     @unique
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String?    @unique
+  sessionId String?    @unique // Field to track anonymous carts
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   items     CartItem[]
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
