@@ -8,15 +8,23 @@ import { prisma } from "../../../db/instance";
 export async function addToCart({
   productId,
   quantity,
+  userId,
   attributes = {},
 }: {
   productId: string;
   quantity: number;
+  userId: string;
   attributes?: Record<string, string>;
 }) {
   try {
     const cookieStore = await cookies();
     let cartId = cookieStore.get("cartId")?.value;
+
+    // Verifica si el usuario existe en la base de datos
+    const userExists = await prisma.user.findUnique({ where: { id: userId } });
+    if (!userExists) {
+      throw new Error("El usuario no existe en la base de datos.");
+    }
 
     // Check if cart exists, otherwise create a new one
     let cart = cartId
@@ -26,7 +34,7 @@ export async function addToCart({
     if (!cart) {
       cart = await prisma.cart.create({
         data: {
-          userId: "default-user-id", // Reemplaza con el ID del usuario autenticado
+          userId: userId,
           createdAt: new Date(),
         },
       });
@@ -47,48 +55,78 @@ export async function addToCart({
     // Find the specific variation based on attributes
     let variationId: string | null = null;
 
-    if (Object.keys(attributes).length > 0) {
-      const product = await prisma.producto.findUnique({
-        where: { id: productId },
-        include: {
-          variaciones: {
-            include: {
-              atributos: {
-                include: {
-                  valorAtributo: {
-                    include: {
-                      atributo: true,
-                    },
+    const product = await prisma.producto.findUnique({
+      where: { id: productId },
+      include: {
+        variaciones: {
+          include: {
+            atributos: {
+              include: {
+                valorAtributo: {
+                  include: {
+                    atributo: true,
                   },
                 },
               },
             },
           },
         },
-      });
+      },
+    });
 
-      if (product) {
-        const matchingVariation = product.variaciones.find((variation) =>
-          Object.entries(attributes).every(([attrName, attrValue]) =>
-            variation.atributos.some(
-              (attr) =>
-                attr.valorAtributo.atributo.nombre === attrName &&
-                attr.valorAtributo.valor === attrValue
-            )
+    if (!product) {
+      throw new Error("El producto no existe en la base de datos.");
+    }
+
+    if (product.variaciones.length === 0) {
+      throw new Error("El producto no tiene variaciones disponibles.");
+    }
+
+    if (Object.keys(attributes).length > 0) {
+      const matchingVariation = product.variaciones.find((variation) =>
+        Object.entries(attributes).every(([attrName, attrValue]) =>
+          variation.atributos.some(
+            (attr) =>
+              attr.valorAtributo.atributo.nombre === attrName &&
+              attr.valorAtributo.valor === attrValue
           )
-        );
+        )
+      );
 
-        if (matchingVariation) {
-          variationId = matchingVariation.id;
-        }
+      if (matchingVariation) {
+        variationId = matchingVariation.id;
+      } else {
+        console.error(
+          "No se encontró una variación que coincida con los atributos:",
+          attributes
+        );
+        throw new Error(
+          "No se encontró una variación de producto válida.",
+          attributes
+        );
       }
+    } else {
+      console.error(
+        "No se proporcionaron atributos para buscar una variación."
+      );
+      throw new Error("No se encontró una variación de producto válida.");
+    }
+
+    // Validar que variationId sea válido
+    const variationExists = await prisma.variacionProducto.findUnique({
+      where: { id: variationId },
+    });
+    if (!variationExists) {
+      throw new Error(
+        "La variación de producto no existe en la base de datos."
+      );
     }
 
     // Check if item already exists in cart
     const existingItem = await prisma.cartItem.findFirst({
       where: {
         cartId: cartId!,
-        variacionId: variationId ?? "",
+        variacionId: variationId,
       },
     });
 
@@ -101,7 +139,7 @@ export async function addToCart({
       await prisma.cartItem.create({
         data: {
           cartId: cartId!,
-          variacionId: variationId ?? "",
+          variacionId: variationId,
           cantidad: quantity,
           precioUnitario: 100, // Reemplaza con el precio real de la variación
         },
@@ -110,9 +148,12 @@ export async function addToCart({
 
     revalidatePath("/");
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error adding to cart:", error);
-    return { success: false, error: "Failed to add item to cart" };
+    return {
+      success: false,
+      error: error.message || "Failed to add item to cart",
+    };
   }
 }
 

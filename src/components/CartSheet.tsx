@@ -1,3 +1,4 @@
+"use client";
 import {
   getCartItems,
   removeFromCart,
@@ -11,14 +12,22 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { ScrollArea } from "./ui/scroll-area";
+import { toast } from "sonner";
 import { Separator } from "./ui/separator";
 
-export default async function CartSheet() {
-  const cartItems = await getCartItems();
+export default function CartSheet() {
+  const { data: cartItems = [], isLoading } = useQuery({
+    queryKey: ["cartItems"],
+    queryFn: getCartItems,
+    refetchOnWindowFocus: true,
+  });
+
+  const queryClient = useQueryClient();
+
   const totalItems = cartItems.reduce(
     (total, item) => total + item.cantidad,
     0
@@ -27,6 +36,44 @@ export default async function CartSheet() {
     (total, item) => total + item.cantidad * item.variacion.producto.precio,
     0
   );
+
+  const handleQuantityChange = async (itemId: string, newQuantity: number) => {
+    if (newQuantity < 1) return;
+    const upd = await updateCartItemQuantity(itemId, newQuantity);
+    if (upd.success) {
+      toast.success("Cantidad actualizada");
+      queryClient.invalidateQueries({ queryKey: ["cartItems"] });
+    } else {
+      toast.error("Error al actualizar la cantidad del producto");
+    }
+  };
+
+  const handleRemove = async (itemId: string) => {
+    const del = await removeFromCart(itemId);
+    if (del.success) {
+      toast.success("Producto eliminado del carrito");
+      queryClient.invalidateQueries({ queryKey: ["cartItems"] });
+    } else {
+      toast.error("Error al eliminar el producto del carrito");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="outline" size="icon" className="relative">
+            <ShoppingCart className="h-5 w-5" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent className="w-full sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>Cargando carrito...</SheetTitle>
+          </SheetHeader>
+        </SheetContent>
+      </Sheet>
+    );
+  }
 
   return (
     <Sheet>
@@ -40,7 +87,7 @@ export default async function CartSheet() {
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md">
+      <SheetContent className="w-full sm:max-w-md p-4">
         <SheetHeader>
           <SheetTitle>Carrito de compras</SheetTitle>
         </SheetHeader>
@@ -55,13 +102,16 @@ export default async function CartSheet() {
           </div>
         ) : (
           <>
-            <ScrollArea className="h-[65vh] my-4">
-              <div className="space-y-4">
-                {cartItems.map((item) => (
-                  <CartItem key={item.id} item={item} />
-                ))}
-              </div>
-            </ScrollArea>
+            <div className="space-y-4">
+              {cartItems.map((item) => (
+                <CartItem
+                  key={item.id}
+                  item={item}
+                  onQuantityChange={handleQuantityChange}
+                  onRemove={handleRemove}
+                />
+              ))}
+            </div>
 
             <div className="space-y-4">
               <Separator />
@@ -78,19 +128,15 @@ export default async function CartSheet() {
   );
 }
 
-// Client component for cart item interactions
-("use client");
-function CartItem({ item }: { item: any }) {
-  const handleQuantityChange = async (newQuantity: number) => {
-    if (newQuantity < 1) return;
-    await updateCartItemQuantity(item.id, newQuantity);
-  };
-
-  const handleRemove = async () => {
-    await removeFromCart(item.id);
-  };
-
-  // Format attributes for display
+function CartItem({
+  item,
+  onQuantityChange,
+  onRemove,
+}: {
+  item: any;
+  onQuantityChange: (itemId: string, newQuantity: number) => void;
+  onRemove: (itemId: string) => void;
+}) {
   const attributeTexts =
     item.variacion?.atributos
       .map(
@@ -103,8 +149,8 @@ function CartItem({ item }: { item: any }) {
     <div className="flex gap-3">
       <div className="h-20 w-20 overflow-hidden rounded-md bg-muted">
         <Image
-          src={item.producto.imagenPrincipal || "/placeholder.svg"}
-          alt={item.producto.nombre}
+          src={item.variacion.producto.imagenPrincipal || "/placeholder.svg"}
+          alt={item.variacion.producto.nombre}
           width={80}
           height={80}
           className="h-full w-full object-cover"
@@ -113,16 +159,16 @@ function CartItem({ item }: { item: any }) {
       <div className="flex flex-1 flex-col gap-1">
         <div className="flex justify-between">
           <Link
-            href={`/productos/${item.producto.id}`}
+            href={`/productos/${item.variacion.producto.id}`}
             className="line-clamp-1 text-sm font-medium hover:underline"
           >
-            {item.producto.nombre}
+            {item.variacion.producto.nombre}
           </Link>
           <Button
             variant="ghost"
             size="icon"
             className="h-6 w-6"
-            onClick={handleRemove}
+            onClick={() => onRemove(item.id)}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -136,7 +182,7 @@ function CartItem({ item }: { item: any }) {
               variant="outline"
               size="icon"
               className="h-6 w-6 rounded-r-none"
-              onClick={() => handleQuantityChange(item.cantidad - 1)}
+              onClick={() => onQuantityChange(item.id, item.cantidad - 1)}
             >
               <Minus className="h-3 w-3" />
             </Button>
@@ -147,13 +193,16 @@ function CartItem({ item }: { item: any }) {
               variant="outline"
               size="icon"
               className="h-6 w-6 rounded-l-none"
-              onClick={() => handleQuantityChange(item.cantidad + 1)}
+              onClick={() => onQuantityChange(item.id, item.cantidad + 1)}
             >
               <Plus className="h-3 w-3" />
             </Button>
           </div>
           <p className="text-sm font-medium">
-            ${(item.producto.precio * item.cantidad).toLocaleString("es-CO")}
+            $
+            {(item.variacion.producto.precio * item.cantidad).toLocaleString(
+              "es-CO"
+            )}
           </p>
         </div>
       </div>

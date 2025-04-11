@@ -1,13 +1,10 @@
 import AtributesSelect from "@/components/AtributesSelect";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Minus, Plus, ShoppingCart } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { prisma } from "../../../../db/instance";
-import { addToCart } from "../actions";
+import { ClientProductActions } from "./productActions";
 
 export default async function ProductPage({
   params,
@@ -163,70 +160,3 @@ export default async function ProductPage({
 }
 
 // Client component to handle state and actions
-("use client");
-function ClientProductActions({ product }: { product: any }) {
-  const [quantity, setQuantity] = useState(1);
-  const [selectedAttributes, setSelectedAttributes] = useState<
-    Record<string, string>
-  >({});
-  const router = useRouter();
-
-  const increaseQuantity = () => {
-    setQuantity((prev) => prev + 1);
-  };
-
-  const decreaseQuantity = () => {
-    if (quantity > 1) {
-      setQuantity((prev) => prev - 1);
-    }
-  };
-
-  const handleAddToCart = async () => {
-    try {
-      await addToCart({
-        productId: product.id,
-        quantity,
-        attributes: selectedAttributes,
-      });
-      router.refresh();
-    } catch (error) {
-      console.error("Error adding to cart:", error);
-    }
-  };
-
-  return (
-    <>
-      <div>
-        <h3 className="font-medium mb-3">Cantidad</h3>
-        <div className="flex items-center">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 rounded-r-none"
-            onClick={decreaseQuantity}
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <div className="flex h-8 w-12 items-center justify-center border-y">
-            {quantity}
-          </div>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 rounded-l-none"
-            onClick={increaseQuantity}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
-      <div className="mt-8">
-        <Button className="w-full" size="lg" onClick={handleAddToCart}>
-          <ShoppingCart className="mr-2 h-4 w-4" />
-          Añadir al carrito
-        </Button>
-      </div>
-    </>
-  );
-}
