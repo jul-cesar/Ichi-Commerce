@@ -169,18 +169,17 @@ model CartItem {
 }
 
 model Order {
-  id               String      @id @default(uuid())
-  userId           String
-  user             User        @relation(fields: [userId], references: [id])
-  items            OrderItem[]
-  estado           String // "pendiente", "pagado", "enviado", "entregado", "cancelado"
-  direccionEnvio   String?
-  metodoPago       String?
-  montoTotal       Float
-  fechaCompra      DateTime    @default(now())
-  fechaActualizada DateTime    @updatedAt
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  id             String      @id @default(uuid())
+  userId         String
+  user           User        @relation(fields: [userId], references: [id])
+  items          OrderItem[]
+  estado         String      @default("pendiente") // Ej. 'pendiente', 'enviado', 'entregado', etc.
+  direccionEnvio String?
+  metodoPago     String?
+  montoTotal     Float
+  fechaCompra    DateTime    @default(now())
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 }
 
 model OrderItem {
