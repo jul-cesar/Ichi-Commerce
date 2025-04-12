@@ -118,8 +118,17 @@ export default function ProductInfoStep() {
           ) : (
             <div className="mt-2">
               <UploadButton
-                className="bg-blue-500 text-black"
+                className="border-border  text-black"
                 endpoint="imageUploader"
+                appearance={{
+                  button:
+                    "ut-ready:bg-green-500 p-4 ut-uploading:cursor-not-allowed rounded-r-none bg-red-500  bg-none after:bg-orange-400",
+                  container:
+                    "w-max flex-row rounded-md border-cyan-300 bg-slate-800",
+                  allowedContent:
+                    "flex h-8 flex-col items-center justify-center px-2 text-white",
+                }}
+                content={{ button: "Subir imagen" }}
                 onClientUploadComplete={(res) => {
                   if (res && res.length > 0) {
                     // Update the state with the uploaded image URL
