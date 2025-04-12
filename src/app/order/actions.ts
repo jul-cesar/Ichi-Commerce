@@ -7,10 +7,14 @@ export async function createOrder({
   userId,
   items,
   direccionEnvio,
+  barrio,
+  telefono
 }: {
   userId: string;
   items: { variacionId: string; cantidad: number }[];
   direccionEnvio: string;
+  barrio: string; 
+  telefono: string; 
 }) {
   try {
     // Validate stock availability
@@ -68,9 +72,12 @@ export async function createOrder({
     const order = await prisma.order.create({
       data: {
         userId,
+        telefonoContacto: telefono,
+        nombreBarrio: barrio,
         estado: "pending", // Initial state
         direccionEnvio,
         montoTotal,
+
         items: {
           create: orderItems,
         },

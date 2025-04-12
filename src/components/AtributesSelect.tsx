@@ -11,6 +11,7 @@ type AtributesSelectProps = {
   product: {
     variaciones: {
       id: string;
+      stock: number; // Include stock information
       atributos: {
         valorAtributo: {
           atributo: { nombre: string };
@@ -41,22 +42,25 @@ const AtributesSelect = ({
     const opcionesPorAtributo: { [key: string]: string[] } = {};
 
     product.variaciones.forEach((variacion) => {
-      variacion.atributos.forEach((atributo) => {
-        const nombreAtributo = atributo.valorAtributo.atributo.nombre;
-        const valorAtributo = atributo.valorAtributo.valor;
+      if (variacion.stock > 0) {
+        // Only include variations with stock > 0
+        variacion.atributos.forEach((atributo) => {
+          const nombreAtributo = atributo.valorAtributo.atributo.nombre;
+          const valorAtributo = atributo.valorAtributo.valor;
 
-        if (!atributosEncontrados.includes(nombreAtributo)) {
-          atributosEncontrados.push(nombreAtributo);
-        }
+          if (!atributosEncontrados.includes(nombreAtributo)) {
+            atributosEncontrados.push(nombreAtributo);
+          }
 
-        if (!opcionesPorAtributo[nombreAtributo]) {
-          opcionesPorAtributo[nombreAtributo] = [];
-        }
+          if (!opcionesPorAtributo[nombreAtributo]) {
+            opcionesPorAtributo[nombreAtributo] = [];
+          }
 
-        if (!opcionesPorAtributo[nombreAtributo].includes(valorAtributo)) {
-          opcionesPorAtributo[nombreAtributo].push(valorAtributo);
-        }
-      });
+          if (!opcionesPorAtributo[nombreAtributo].includes(valorAtributo)) {
+            opcionesPorAtributo[nombreAtributo].push(valorAtributo);
+          }
+        });
+      }
     });
 
     setAtributos(atributosEncontrados);
@@ -84,14 +88,17 @@ const AtributesSelect = ({
     }
 
     const variacionesValidas = product.variaciones.filter((variacion) => {
-      return Object.entries(otrasSelecciones).every(
-        ([nombreAtributo, valorSeleccionado]) => {
-          return variacion.atributos.some(
-            (atributo) =>
-              atributo.valorAtributo.atributo.nombre === nombreAtributo &&
-              atributo.valorAtributo.valor === valorSeleccionado
-          );
-        }
+      return (
+        variacion.stock > 0 && // Only include variations with stock > 0
+        Object.entries(otrasSelecciones).every(
+          ([nombreAtributo, valorSeleccionado]) => {
+            return variacion.atributos.some(
+              (atributo) =>
+                atributo.valorAtributo.atributo.nombre === nombreAtributo &&
+                atributo.valorAtributo.valor === valorSeleccionado
+            );
+          }
+        )
       );
     });
 

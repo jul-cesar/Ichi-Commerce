@@ -15,6 +15,7 @@ import Link from "next/link";
 import { clearCartCookie } from "@/app/auth/actions";
 import { mergeCartOnLogin } from "@/app/productos/actions";
 import { authClient } from "@/lib/client";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import CartSheet from "./CartSheet";
 import MobileMenu from "./MobileMenu";
@@ -34,7 +35,10 @@ const signOut = async () => {
   await clearCartCookie();
 };
 
+const hideNavbarRoutes = ["/admin/", "/order/nuevo"];
+
 export default function Navbar() {
+  const pathname = usePathname();
   const { data: session } = authClient.useSession();
 
   useEffect(() => {
@@ -57,6 +61,10 @@ export default function Navbar() {
 
     mergeCart();
   }, [session?.user?.id]);
+
+  if (hideNavbarRoutes.includes(pathname)) {
+    return null;
+  }
 
   return (
     <header className="px-5 sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

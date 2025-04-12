@@ -122,7 +122,9 @@ export default function CartSheet() {
                 <span>Subtotal</span>
                 <span>${subtotal.toLocaleString("es-CO")}</span>
               </div>
-              <Button className="w-full">Proceder al pago</Button>
+              <Link href={"/order/nuevo"}>
+                <Button className="w-full">Proceder al pago</Button>
+              </Link>
             </div>
           </>
         )}

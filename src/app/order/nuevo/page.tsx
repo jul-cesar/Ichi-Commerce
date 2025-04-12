@@ -44,6 +44,7 @@ import { Minus, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 
+import { Textarea } from "@/components/ui/textarea";
 import colombia from "../../../utils/colombia.json";
 import { createOrder } from "../actions";
 
@@ -59,7 +60,9 @@ const formSchema = z.object({
   direccion: z
     .string()
     .min(5, { message: "La dirección debe tener al menos 5 caracteres" }),
-  nombreBarrio: z.string().optional(),
+  nombreBarrio: z.string().min(3, {
+    message: "Es obligatorio un barrio o referencia",
+  }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -226,6 +229,8 @@ const Page = () => {
     console.log("Items del carrito:", cartItems);
     const newOrder = await createOrder({
       direccionEnvio: data.direccion,
+      barrio: data.nombreBarrio,
+      telefono: data.telefono,
       items: cartItems.map((item) => ({
         variacionId: item.variacion.id,
         cantidad: item.cantidad,
@@ -266,12 +271,12 @@ const Page = () => {
           {/* Formulario de pago - 2/3 del ancho */}
           <div className="md:col-span-2">
             <Card className="shadow-lg">
-              <CardHeader className="space-y-1 bg-primary text-primary-foreground rounded-t-lg">
-                <CardTitle className="text-2xl font-bold flex items-center gap-2">
+              <CardHeader className="space-y-1  text-primary-foreground rounded-t-lg">
+                <CardTitle className="text-2xl text-black font-bold flex items-center gap-2">
                   <CreditCard className="h-6 w-6" />
                   Información de Pago
                 </CardTitle>
-                <CardDescription className="text-primary-foreground/90">
+                <CardDescription className=" text-black">
                   Complete los datos para procesar su pago de forma segura
                 </CardDescription>
               </CardHeader>
@@ -426,9 +431,12 @@ const Page = () => {
                           name="nombreBarrio"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Código Postal (Opcional)</FormLabel>
+                              <FormLabel>Barrio o referencia</FormLabel>
                               <FormControl>
-                                <Input placeholder="110111" {...field} />
+                                <Textarea
+                                  placeholder="Nombre del barrio o referencias"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>

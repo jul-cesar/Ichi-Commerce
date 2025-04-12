@@ -210,26 +210,24 @@ export const createVariation = async (data: {
 export const actualizarVariacion = async (data: {
   productId: string;
   variationId: string;
-
   stock: number;
   attributes: {
     attributeId: string;
-
     valueId: string;
   }[];
 }) => {
   try {
     const { variationId, stock, attributes, productId } = data;
 
+    // Check for existing variations with the same attributes, excluding the current variation
     const variacionExistente = await prisma.variacionProducto.findFirst({
       where: {
-        AND: {
-          productoId: productId,
-          atributos: {
-            every: {
-              opcionAtributoId: {
-                in: attributes.map((atributo) => atributo.valueId),
-              },
+        productoId: productId,
+        id: { not: variationId }, // Exclude the current variation from the check
+        atributos: {
+          every: {
+            opcionAtributoId: {
+              in: attributes.map((atributo) => atributo.valueId),
             },
           },
         },
@@ -243,19 +241,19 @@ export const actualizarVariacion = async (data: {
       };
     }
 
-    // 1. Actualizar el stock de la variación
+    // 1. Update the stock of the variation
     await prisma.variacionProducto.update({
       where: { id: variationId },
       data: { stock },
     });
 
-    // 2. Actualizar los atributos de la variación
-    // Primero, elimina los atributos existentes
+    // 2. Update the attributes of the variation
+    // First, delete the existing attributes
     await prisma.variacionAtributo.deleteMany({
       where: { variacionProductoId: variationId },
     });
 
-    // Luego, crea los nuevos atributos
+    // Then, create the new attributes
     await prisma.variacionAtributo.createMany({
       data: attributes.map((attribute) => ({
         variacionProductoId: variationId,
