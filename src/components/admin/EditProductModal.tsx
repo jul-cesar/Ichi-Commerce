@@ -32,6 +32,7 @@ type EditProductModalProps = {
     descripcion: string;
     precio: number;
     categoriaId: string;
+    precioPromo: number;
     activo: boolean;
   };
   categories: Prisma.CategoriaGetPayload<{}>[] | undefined;
@@ -52,6 +53,7 @@ export function EditProductModal({
     precio: product.precio,
     categoriaId: product.categoriaId,
     activo: product.activo,
+    precioPromo: product.precioPromo,
   });
 
   const handleChange = (
@@ -75,7 +77,10 @@ export function EditProductModal({
 
     try {
       // API call to update product
-      await editarProducto(product.id, formData);
+      await editarProducto(product.id, {
+        ...formData,
+        precio: formData.precio,
+      });
 
       // Close modal and refresh page
       setOpen(false);
@@ -98,7 +103,7 @@ export function EditProductModal({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[900px] overflow-y-visible">
         <DialogHeader>
           <DialogTitle>Editar producto</DialogTitle>
           <DialogDescription>
@@ -107,7 +112,7 @@ export function EditProductModal({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-4  h-auto overflow-auto">
             <div className="grid gap-2">
               <Label htmlFor="nombre">Nombre</Label>
               <Input
@@ -122,6 +127,7 @@ export function EditProductModal({
             <div className="grid gap-2">
               <Label htmlFor="descripcion">Descripción</Label>
               <Textarea
+                className="overflow-auto max-h-36"
                 id="descripcion"
                 name="descripcion"
                 value={formData.descripcion}
@@ -144,6 +150,19 @@ export function EditProductModal({
                   required
                 />
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Label htmlFor="precioPromo">Precio promo</Label>
+                <Input
+                  id="precioPromo"
+                  name="precioPromo"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.precioPromo}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="categoria">Categoría</Label>
@@ -151,7 +170,12 @@ export function EditProductModal({
                   value={formData.categoriaId}
                   onValueChange={handleSelectChange}
                 >
-                  <SelectTrigger id="categoria"></SelectTrigger>
+                  <SelectTrigger id="categoria">
+                    {
+                      categories?.find((c) => c.id === formData.categoriaId)
+                        ?.nombre
+                    }
+                  </SelectTrigger>
                   <SelectContent>
                     {categories?.map((category) => (
                       <SelectItem key={category.id} value={category.id}>

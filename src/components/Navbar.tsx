@@ -35,7 +35,7 @@ const signOut = async () => {
   await clearCartCookie();
 };
 
-const hideNavbarRoutes = ["/admin/", "/order/nuevo"];
+const hideNavbarRoutes = ["/admin/", "/order/nuevo", "/order/success"];
 
 export default function Navbar() {
   const pathname = usePathname();

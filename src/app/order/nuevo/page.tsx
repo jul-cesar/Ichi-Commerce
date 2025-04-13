@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CreditCard, Loader2, ShoppingBag } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -45,16 +45,21 @@ import Image from "next/image";
 import { toast } from "sonner";
 
 import { Textarea } from "@/components/ui/textarea";
+import { useRouter } from "next/navigation";
 import colombia from "../../../utils/colombia.json";
-import { createOrder } from "../actions";
+import { createOrder, createOrderWithoutLogin } from "../actions";
 
 // Esquema de validación con Zod
 const formSchema = z.object({
   nombre: z
     .string()
     .min(3, { message: "El nombre debe tener al menos 3 caracteres" }),
+  apellidos: z
+    .string()
+    .min(3, { message: "El apellido debe tener al menos 3 caracteres" }),
+
   email: z.string().email({ message: "Correo electrónico inválido" }),
-  telefono: z.string().min(10, { message: "Número de teléfono inválido" }),
+  telefono: z.string().min(9, { message: "Número de teléfono inválido" }),
   departamento: z.string().min(1, { message: "Seleccione un departamento" }),
   ciudad: z.string().min(1, { message: "Seleccione una ciudad" }),
   direccion: z
@@ -196,6 +201,7 @@ const Page = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       nombre: session?.user?.name,
+      apellidos: "",
       email: session?.user.email,
       telefono: "",
       departamento: "",
@@ -219,7 +225,7 @@ const Page = () => {
       setCities([]);
     }
   };
-
+  const router = useRouter();
   // Manejar envío del formulario
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
@@ -227,38 +233,40 @@ const Page = () => {
     // Simular procesamiento de pago
     console.log("Datos del formulario:", data);
     console.log("Items del carrito:", cartItems);
-    const newOrder = await createOrder({
+
+    const orderPayload = {
       direccionEnvio: data.direccion,
-      barrio: data.nombreBarrio,
-      telefono: data.telefono,
+      nombreBarrio: data.nombreBarrio,
+      telefonoContacto: data.telefono,
+      apellidos: data.apellidos,
+      nombre: data.nombre,
+      departamento: data.departamento,
+      ciudad: data.ciudad,
       items: cartItems.map((item) => ({
         variacionId: item.variacion.id,
         cantidad: item.cantidad,
       })),
-      userId: session?.user?.id ?? "",
-    });
+    };
+
+    const newOrder = session?.user?.id
+      ? await createOrder({ ...orderPayload, userId: session.user.id })
+      : await createOrderWithoutLogin(orderPayload);
+
     if (!newOrder.success) {
-      toast.error("Error al procesar el pago. Intente nuevamente.");
+      toast.error("Error al crear la orden. Intente nuevamente.");
       setIsSubmitting(false);
       return;
     }
-    toast.success("¡Orden creada con éxito!");
 
-    // Simular tiempo de procesamiento
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    toast.success("¡Orden creada con éxito!");
+    router.push(`/order/success?order=${newOrder.order?.id}`);
 
     setIsSubmitting(false);
-    toast.success("¡Pago procesado con éxito!");
     form.reset();
     setCities([]);
   };
 
   // Verificar si hay items en el carrito
-  useEffect(() => {
-    if (cartItems.length === 0 && !isLoading) {
-      toast.error("No hay productos en el carrito para proceder al pago");
-    }
-  }, [cartItems, isLoading]);
 
   return (
     <div className="min-h-screen py-10 px-4 bg-gray-50">
@@ -295,9 +303,26 @@ const Page = () => {
                           name="nombre"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Nombre Completo</FormLabel>
+                              <FormLabel>Nombres</FormLabel>
                               <FormControl>
-                                <Input placeholder="Juan Pérez" {...field} />
+                                <Input placeholder="Juan Pepe" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="apellidos"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Apellidos</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Pérez Gonzales"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -326,7 +351,7 @@ const Page = () => {
                           name="telefono"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Teléfono</FormLabel>
+                              <FormLabel>Celular WhatsApp</FormLabel>
                               <FormControl>
                                 <Input placeholder="3001234567" {...field} />
                               </FormControl>
@@ -341,9 +366,7 @@ const Page = () => {
 
                     {/* Dirección de Facturación */}
                     <div className="space-y-4">
-                      <h3 className="text-lg font-medium">
-                        Dirección de Facturación
-                      </h3>
+                      <h3 className="text-lg font-medium">Dirección</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <FormField
                           control={form.control}
@@ -414,7 +437,9 @@ const Page = () => {
                           name="direccion"
                           render={({ field }) => (
                             <FormItem className="col-span-1 md:col-span-2">
-                              <FormLabel>Dirección</FormLabel>
+                              <FormLabel>
+                                Dirección Completa (Conjunto, piso, apto)
+                              </FormLabel>
                               <FormControl>
                                 <Input
                                   placeholder="Calle 123 # 45-67"

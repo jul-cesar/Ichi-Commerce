@@ -266,7 +266,7 @@ export async function getCartItems(userId?: string) {
       include: {
         variacion: {
           include: {
-            producto: true,
+            producto: true, // Include producto
             atributos: {
               include: {
                 valorAtributo: {
@@ -281,7 +281,8 @@ export async function getCartItems(userId?: string) {
       },
     });
 
-    return cartItems;
+    // Filter out items where producto is null
+    return cartItems.filter((item) => item.variacion.producto !== null);
   } catch (error) {
     console.error("Error fetching cart items:", error);
     return [];

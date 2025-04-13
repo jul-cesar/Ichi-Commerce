@@ -8,10 +8,12 @@ import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
+  LucideLoader,
   MinusCircle,
   PlusCircle,
   ShoppingCart,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -20,6 +22,7 @@ type ClientProductActionsProps = {
     id: string;
     nombre: string;
     precio: number;
+    precioPromo: number;
   };
   selectedAttributes: { [key: string]: string }; // Selected attributes from AtributesSelect
 };
@@ -33,6 +36,7 @@ export const ClientProductActions = ({
   const [quantity, setQuantity] = useState(1); // State for quantity
   const queryClient = useQueryClient();
   const [attributesNeeded, setAttributesNeeded] = useState(2);
+  const router = useRouter();
 
   // Validate that at least two attributes are selected
   useEffect(() => {
@@ -55,8 +59,14 @@ export const ClientProductActions = ({
       });
 
       if (result.success) {
-        toast.success("Producto agregado al carrito");
-        queryClient.invalidateQueries({ queryKey: ["cartItems"] }); // Invalidate cart items query to refresh
+        toast(
+          <div className="flex items-center gap-2">
+            <LucideLoader className="animate-spin size-4" />
+            Procediendo con la orden
+          </div>
+        );
+        queryClient.invalidateQueries({ queryKey: ["cartItems"] }); // Invalidate cart items query to
+        router.push("/order/nuevo"); // Redirect to cart page
       } else {
         toast.error("Error al agregar al carrito:", result.error);
       }
@@ -75,6 +85,7 @@ export const ClientProductActions = ({
 
   // Calculate total price based on quantity
   const totalPrice = product.precio * quantity;
+  const promoToalPrice = product.precioPromo * quantity;
 
   return (
     <Card className="p-5 space-y-6 border-muted-foreground/20">
@@ -90,6 +101,16 @@ export const ClientProductActions = ({
 
           <div className="space-y-1 text-right">
             <p className="text-sm text-muted-foreground">Total</p>
+
+            {product.precioPromo > 0 && (
+              <div>
+                <p className="">Antes</p>
+                <p className="text-2xl font-semibold line-through">
+                  ${promoToalPrice.toLocaleString("es-CO")}
+                </p>
+              </div>
+            )}
+            <p>Ahora</p>
             <p className="text-2xl font-bold text-primary">
               ${totalPrice.toLocaleString("es-CO")}
             </p>
@@ -165,11 +186,11 @@ export const ClientProductActions = ({
       <Button
         onClick={handleAddToCart}
         disabled={loading || !canAddToCart}
-        className="w-full h-12 text-base font-medium"
+        className="w-full h-12 text-base font-medium bg-green-500"
         size="lg"
       >
-        <ShoppingCart className="mr-2 h-5 w-5" />
-        {loading ? "Agregando..." : "Agregar al carrito"}
+        <ShoppingCart className="mr-2 h-5 w-5 " />
+        {loading ? "Agregando..." : "Pagar contraentrega"}
       </Button>
     </Card>
   );

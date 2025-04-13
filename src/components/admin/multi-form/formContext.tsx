@@ -25,6 +25,7 @@ export type ProductFormState = {
   nombre: string;
   descripcion: string;
   precio: string;
+  precioPromo: string;
   imagenPrincipal: string;
 
   categoryId: string;
@@ -41,6 +42,7 @@ const initialState: ProductFormState = {
   descripcion: "",
   precio: "",
   imagenPrincipal: "",
+  precioPromo: "",
   categoryId: "",
   selectedAttributeIds: [],
   variations: [],
@@ -135,16 +137,27 @@ export function useProductForm() {
 }
 
 // Zod schemas for validation
-export const productInfoSchema = z.object({
-  nombre: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
-  descripcion: z
-    .string()
-    .min(10, "La descripción debe tener al menos 10 caracteres"),
-  precio: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-    message: "El precio debe ser un número positivo",
-  }),
-  imagenPrincipal: z.string().min(1, "Por favor, selecciona una imagen"),
-});
+
+export const productInfoSchema = z
+  .object({
+    nombre: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
+    descripcion: z
+      .string()
+      .min(10, "La descripción debe tener al menos 10 caracteres"),
+    precio: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: "El precio debe ser un número positivo",
+    }),
+    precioPromo: z
+      .string()
+      .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+        message: "El precio promocional debe ser un número positivo",
+      }),
+    imagenPrincipal: z.string().min(1, "Por favor, selecciona una imagen"),
+  })
+  .refine((data) => Number(data.precioPromo) > Number(data.precio), {
+    path: ["precioPromo"],
+    message: "El precio promocional debe ser mayor que el precio normal",
+  });
 
 export const productDetailsSchema = z.object({
   categoryId: z.string().min(1, "Por favor, selecciona una categoría"),

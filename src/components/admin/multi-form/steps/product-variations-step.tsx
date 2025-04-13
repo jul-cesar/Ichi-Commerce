@@ -97,17 +97,19 @@ export default function ProductVariationsStep({
 
   const handleAddVariation = () => {
     if (!isNewVariationComplete()) {
-      setErrors({ general: "Please select all attributes for this variation" });
+      setErrors({
+        general: "Por favor seleccion todos los atributos para esta variacion",
+      });
       return;
     }
 
     if (isDuplicateVariation()) {
-      setErrors({ general: "This variation already exists" });
+      setErrors({ general: "Esta variacion ya existe" });
       return;
     }
 
     if ((newVariation.stock || 0) < 0) {
-      setErrors({ stock: "Stock cannot be negative" });
+      setErrors({ stock: "El stock no puede ser negativo" });
       return;
     }
 
@@ -286,7 +288,7 @@ export default function ProductVariationsStep({
               onClick={handleSubmitForm}
               disabled={state.variations.length === 0 || isSubmitting}
             >
-              {isSubmitting ? "Submitting..." : "Submit Product"}
+              {isSubmitting ? "Agregando..." : "Agregar producto"}
             </Button>
           </div>
         </>

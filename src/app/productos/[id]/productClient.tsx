@@ -32,7 +32,7 @@ export default function ProductClient({ product }: ProductClientProps) {
   }>({});
 
   return (
-    <div className="">
+    <div className="flex flex-col gap-4">                                                                           
       <AtributesSelect
         product={product}
         onSelectionChange={setSelectedAttributes}

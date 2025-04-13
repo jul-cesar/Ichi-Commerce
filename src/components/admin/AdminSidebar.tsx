@@ -5,7 +5,6 @@ import {
   Box,
   Dices,
   Home,
-  LayoutDashboard,
   Package,
   Settings,
   ShoppingCart,
@@ -18,11 +17,11 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const sidebarItems = [
-  {
-    title: "Dashboard",
-    href: "/admin",
-    icon: LayoutDashboard,
-  },
+  // {
+  //   title: "Dashboard",
+  //   href: "/admin",
+  //   icon: LayoutDashboard,
+  // },
   {
     title: "Productos",
     href: "/admin/productos",
