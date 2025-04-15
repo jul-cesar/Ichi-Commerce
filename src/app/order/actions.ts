@@ -241,3 +241,79 @@ export async function fulfillOrder(orderId: string) {
     return { success: false, error: error.message };
   }
 }
+
+export async function sendOrderToWhatsapp({
+  nombre,
+  fecha,
+  items,
+  telefono,
+  direccion,
+  total,
+  barrio,
+}: {
+  nombre: string;
+  fecha: string | Date;
+  telefono:string
+  items: { nombreProducto: string; cantidad: number; precio: number }[];
+  direccion: string;
+  barrio: string;
+  total:number
+}) {
+  // Format the product details into a string
+  const productosFormatted = items
+    .map(
+      (producto) =>
+        `- ${producto.nombreProducto} (x${producto.cantidad}): $${producto.precio.toLocaleString(
+          "es-CO"
+        )}`
+    )
+    .join("\n");
+
+  const payload = {
+    messaging_product: "whatsapp",
+    to: "573042680811", // Número del proveedor
+    type: "template",
+    template: {
+      name: "order",
+      language: { code: "es_CO" },
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: nombre },
+            { type: "text", text: fecha },
+            { type: "text", text: productosFormatted },
+            { type: "text", text: direccion },
+            { type: "text", text: barrio },
+          ],
+        },
+      ],
+    },
+  };
+
+  try {
+    const response = await fetch(
+      "https://graph.facebook.com/v19.0/589575280912545/messages",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.FB_TOKEN || ""}`,
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Error al enviar WhatsApp:", data);
+      throw new Error("Falló el envío");
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error inesperado:", error);
+    return { success: false };
+  }
+}

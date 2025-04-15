@@ -47,7 +47,11 @@ import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
 import colombia from "../../../utils/colombia.json";
-import { createOrder, createOrderWithoutLogin } from "../actions";
+import {
+  createOrder,
+  createOrderWithoutLogin,
+  sendOrderToWhatsapp,
+} from "../actions";
 
 // Esquema de validación con Zod
 const formSchema = z.object({
@@ -255,6 +259,35 @@ const Page = () => {
       toast.error("Error al crear la orden. Intente nuevamente.");
       setIsSubmitting(false);
       return;
+    }
+
+    // Send order details to WhatsApp
+    const whatsappResponse = await sendOrderToWhatsapp({
+      nombre: data.nombre,
+      telefono: data.telefono,
+      direccion: data.direccion,
+      fecha: newOrder.order?.createdAt ?? "",
+      barrio: data.nombreBarrio,
+      items: cartItems.map((item) => {
+        const attributes = item.variacion.atributos
+          .map(
+            (attr: any) =>
+              `${attr.valorAtributo.atributo.nombre}: ${attr.valorAtributo.valor}`
+          )
+          .join(", ");
+        return {
+          nombreProducto: `${item.variacion.producto.nombre} (${attributes})`,
+          cantidad: item.cantidad,
+          precio: item.variacion.producto.precio,
+        };
+      }),
+      total: subtotal,
+    });
+
+    if (!whatsappResponse.success) {
+      toast.error("Error al enviar la orden a WhatsApp.");
+    } else {
+      toast.success("¡Orden enviada a WhatsApp con éxito!");
     }
 
     toast.success("¡Orden creada con éxito!");
