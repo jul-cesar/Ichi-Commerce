@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User } from "lucide-react";
+import { LogOut, ShieldUser, User } from "lucide-react";
 import Link from "next/link";
 
 import { clearCartCookie } from "@/app/auth/actions";
@@ -35,7 +35,15 @@ const signOut = async () => {
   await clearCartCookie();
 };
 
-const hideNavbarRoutes = ["/admin/", "/order/nuevo", "/order/success"];
+const hideNavbarRoutes = [
+  "/admin/",
+  "/admin/nuevo",
+  "/admin/productos",
+  "/admin/atributos",
+  "/admin/categorias",
+  "/order/nuevo",
+  "/order/success",
+];
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -88,6 +96,14 @@ export default function Navbar() {
         </nav>
 
         <div className="flex flex-1 items-center justify-end space-x-4">
+          {session?.user.role === "admin" && (
+            <Link
+              href="/admin"
+              className="hidden md:flex gap-2 hover:underline"
+            >
+              <ShieldUser /> Admin
+            </Link>
+          )}
           <SearchDialog />
 
           {!session?.user.id ? (

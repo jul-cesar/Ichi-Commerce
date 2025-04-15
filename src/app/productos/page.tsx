@@ -1,12 +1,20 @@
 import ProductCard from "@/components/ProductCard";
-import ProductFilters from "@/components/ProductFilters";
 import Image from "next/image";
 import { prisma } from "../../../db/instance";
 
 export const dynamic = "force-dynamic"; // Enable dynamic rendering for this page
 
-export default async function ProductsPage() {
+export default async function ProductsPage({
+  searchParams,
+}: {
+  searchParams: { q?: string };
+}) {
   const products = await prisma.producto.findMany({
+    where: {
+      nombre: {
+        contains: searchParams.q || "", // Filter products by name based on search query
+      },
+    },
     include: {
       categoria: true,
     },
@@ -36,7 +44,7 @@ export default async function ProductsPage() {
       </section>
 
       {/* Filters Section */}
-      <ProductFilters categories={categories} />
+      {/* <ProductFilters categories={categories} /> */}
 
       {/* Products Grid */}
       <section className="container p-8">

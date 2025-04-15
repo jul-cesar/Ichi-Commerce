@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  BarChart3,
-  Box,
-  Dices,
-  Home,
-  Package,
-  Settings,
-  ShoppingCart,
-  Users,
-} from "lucide-react";
+import { Box, Dices, Home, Package } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -33,31 +24,31 @@ const sidebarItems = [
     icon: Dices,
   },
 
-  {
-    title: "Pedidos",
-    href: "/admin/pedidos",
-    icon: ShoppingCart,
-  },
-  {
-    title: "Clientes",
-    href: "/admin/clientes",
-    icon: Users,
-  },
+  // {
+  //   title: "Pedidos",
+  //   href: "/admin/pedidos",
+  //   icon: ShoppingCart,
+  // },
+  // {
+  //   title: "Clientes",
+  //   href: "/admin/clientes",
+  //   icon: Users,
+  // },
   {
     title: "Categorías",
     href: "/admin/categorias",
     icon: Box,
   },
-  {
-    title: "Analíticas",
-    href: "/admin/analiticas",
-    icon: BarChart3,
-  },
-  {
-    title: "Configuración",
-    href: "/admin/configuracion",
-    icon: Settings,
-  },
+  // {
+  //   title: "Analíticas",
+  //   href: "/admin/analiticas",
+  //   icon: BarChart3,
+  // },
+  // {
+  //   title: "Configuración",
+  //   href: "/admin/configuracion",
+  //   icon: Settings,
+  // },
 ];
 
 export default function AdminSidebar() {

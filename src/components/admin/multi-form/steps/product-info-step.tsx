@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { UploadButton } from "@/utils/uploadthing";
-import { X } from "lucide-react";
+import { Loader2, Upload, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -138,13 +138,27 @@ export default function ProductInfoStep() {
                 endpoint="imageUploader"
                 appearance={{
                   button:
-                    "ut-ready:bg-green-500 p-4 ut-uploading:cursor-not-allowed rounded-r-none bg-red-500  bg-none after:bg-orange-400",
+                    "ut-ready:bg-primary h-full p-4 ut-uploading:cursor-not-allowed rounded bg-red-500 bg-none after:bg-orange-400",
                   container:
-                    "w-max flex-row rounded-md border-cyan-300 bg-slate-800",
+                    "w-max flex rounded-md border-cyan-300 bg-slate-800",
                   allowedContent:
                     "flex h-8 flex-col items-center justify-center px-2 text-white",
                 }}
-                content={{ button: "Subir imagen" }}
+                content={{
+                  button({ ready }) {
+                    if (ready)
+                      return (
+                        <div className="flex flex-col items-center gap-2">
+                          Sube la imagen principal del producto <Upload />
+                        </div>
+                      );
+                    return "Preparando...";
+                  },
+                  allowedContent({ ready, fileTypes, isUploading }) {
+                    if (isUploading)
+                      return <Loader2 className="animate-spin size-4" />;
+                  },
+                }}
                 onClientUploadComplete={(res) => {
                   if (res && res.length > 0) {
                     // Update the state with the uploaded image URL

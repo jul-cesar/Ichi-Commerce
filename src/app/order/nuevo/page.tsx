@@ -226,11 +226,10 @@ const Page = () => {
     }
   };
   const router = useRouter();
-  // Manejar envío del formulario
+
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
 
-    // Simular procesamiento de pago
     console.log("Datos del formulario:", data);
     console.log("Items del carrito:", cartItems);
 
@@ -282,10 +281,10 @@ const Page = () => {
               <CardHeader className="space-y-1  text-primary-foreground rounded-t-lg">
                 <CardTitle className="text-2xl text-black font-bold flex items-center gap-2">
                   <CreditCard className="h-6 w-6" />
-                  Información de Pago
+                  Información de orden
                 </CardTitle>
                 <CardDescription className=" text-black">
-                  Complete los datos para procesar su pago de forma segura
+                  Complete los datos para procesar su orden de forma segura
                 </CardDescription>
               </CardHeader>
 

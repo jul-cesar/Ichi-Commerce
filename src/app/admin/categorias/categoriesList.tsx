@@ -1,8 +1,6 @@
 "use client";
 
-import { deleteAttribute } from "@/components/admin/actions";
-import { EditAttributeModal } from "@/components/admin/edit-attribute-modal";
-import { Badge } from "@/components/ui/badge";
+import { deleteCategorie } from "@/components/admin/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -19,40 +17,49 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { EditCategorieModal } from "./edit-categorie-modal";
 
-type AttributesListProps = {
-  attributes: Prisma.AtributoVariacionGetPayload<{
+type CategoriesListProps = {
+  categories: Prisma.CategoriaGetPayload<{
     include: {
-      OpcionAtributo: true;
+      productos: true;
     };
   }>[];
 };
 
-export function AttributesList({ attributes }: AttributesListProps) {
+export function CategoriesList({ categories }: CategoriesListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [attributeToDelete, setAttributeToDelete] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleDeleteClick = async () => {
-    if (!attributeToDelete) return;
-    setLoading(true);
-    const del = await deleteAttribute(attributeToDelete.id);
+    try {
+      setLoading(true);
+      const del = await deleteCategorie(attributeToDelete.id);
+      if (!del) {
+        toast.error(`Error al eliminar el atributo`);
+        setLoading(false);
+        setDeleteDialogOpen(false);
+        return;
+      } else {
+        setLoading(false);
+        setDeleteDialogOpen(false);
+        toast.success("Atributo eliminado correctamente");
 
-    if (del.error) {
-      toast.error(`Error al eliminar el atributo ${del.error}`);
+        setAttributeToDelete(null);
+        router.refresh();
+      }
+    } catch (error) {
+      console.error("Error al eliminar el atributo:", error);
+      toast.error("Error al eliminar el atributo");
       setLoading(false);
-    } else {
-      setLoading(false);
-      toast.success("Atributo eliminado correctamente");
-      setDeleteDialogOpen(false);
-      setAttributeToDelete(null);
-
-      router.refresh();
     }
+
+    setDeleteDialogOpen(true);
   };
 
-  if (attributes?.length === 0) {
+  if (categories?.length === 0) {
     return (
       <Card>
         <CardContent className="pt-6">
@@ -73,35 +80,23 @@ export function AttributesList({ attributes }: AttributesListProps) {
 
   return (
     <div className="grid gap-4">
-      {attributes.map((attribute) => (
+      {categories.map((attribute) => (
         <Card key={attribute.id}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-medium">{attribute.nombre}</h3>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {attribute.OpcionAtributo.map((value: any) => (
-                    <Badge key={value.id} variant="outline">
-                      {value.valor}
-                    </Badge>
-                  ))}
-                  {attribute.OpcionAtributo?.length === 0 && (
-                    <span className="text-sm text-muted-foreground">
-                      No hay valores definidos
-                    </span>
-                  )}
-                </div>
+                <p>{attribute.descripcion}</p>
               </div>
               <div className="flex gap-2">
-                <EditAttributeModal attribute={attribute} />
-
+                <EditCategorieModal categorie={attribute}/>
                 <Button
                   variant="outline"
                   size="icon"
                   className="text-destructive"
                   onClick={() => {
-                    setDeleteDialogOpen(true);
                     setAttributeToDelete(attribute);
+                    setDeleteDialogOpen(true);
                   }}
                 >
                   <Trash className="h-4 w-4" />
@@ -120,12 +115,11 @@ export function AttributesList({ attributes }: AttributesListProps) {
             <DialogTitle>¿Estás seguro?</DialogTitle>
             <DialogDescription>
               Esta acción no se puede deshacer. Esto eliminará permanentemente
-              el atributo
+              la categoria
               <span className="font-semibold">
                 {" "}
                 {attributeToDelete?.nombre}{" "}
               </span>
-              y todos sus valores asociados.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -137,7 +131,7 @@ export function AttributesList({ attributes }: AttributesListProps) {
             </Button>
             <Button variant="destructive" onClick={handleDeleteClick}>
               {loading ? (
-                <Loader2 className="size-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 "Eliminar"
               )}

@@ -8,6 +8,42 @@ export const getCategories = async () => {
   return await prisma.categoria.findMany({});
 };
 
+export const deleteCategorie = async (id: string) => {
+  const del = await prisma.categoria.delete({
+    where: {
+      id,
+    },
+  });
+  if (del) {
+    return del;
+  }
+  return null;
+};
+
+export const editCategorie = async (
+  id: string,
+  data: Prisma.CategoriaGetPayload<{
+    omit: {
+      id: true;
+      img: true;
+    };
+  }>
+) => {
+  const newCat = await prisma.categoria.update({
+    where: {
+      id,
+    },
+    data: {
+      descripcion: data.descripcion,
+      nombre: data.nombre,
+    },
+  });
+  if (newCat) {
+    return newCat;
+  }
+  return null;
+};
+
 export const getAttributes = async () => {
   return await prisma.atributoVariacion.findMany({
     include: {
@@ -20,13 +56,14 @@ export const crearCategoria = async (
   categoria: Prisma.CategoriaGetPayload<{
     omit: {
       id: true;
+      img: true;
     };
   }>
 ) => {
   const newCat = await prisma.categoria.create({
     data: {
       descripcion: categoria.descripcion,
-      img: categoria.img,
+
       nombre: categoria.nombre,
     },
   });
