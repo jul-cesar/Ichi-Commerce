@@ -102,12 +102,18 @@ export function EditVariationModal({
     setIsSubmitting(true);
 
     try {
+      const requiredAttributes = variation.atributos.map(
+        (attr) => attr.valorAtributo.atributo.id
+      );
+
       if (
-        attributes &&
-        attributes.length > 0 &&
-        Object.keys(selectedAttributes).length < attributes.length
+        requiredAttributes.some(
+          (attributeId) => !selectedAttributes[attributeId]
+        )
       ) {
-        throw new Error("Debes seleccionar un valor para cada atributo");
+        throw new Error(
+          "Debes seleccionar un valor para cada atributo requerido."
+        );
       }
 
       console.log("Submitting with attributes:", selectedAttributes);

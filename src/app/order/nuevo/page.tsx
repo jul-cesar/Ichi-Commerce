@@ -261,12 +261,17 @@ const Page = () => {
       return;
     }
 
-    // Send order details to WhatsApp
     const whatsappResponse = await sendOrderToWhatsapp({
       nombre: data.nombre,
       telefono: data.telefono,
       direccion: data.direccion,
-      fecha: newOrder.order?.createdAt ?? "",
+      fecha: new Intl.DateTimeFormat("es-CO", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(newOrder.order?.createdAt),
       barrio: data.nombreBarrio,
       items: cartItems.map((item) => {
         const attributes = item.variacion.atributos
