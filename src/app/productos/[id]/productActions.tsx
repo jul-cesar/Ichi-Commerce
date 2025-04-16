@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, LucideLoader, ShoppingCart, Tag } from "lucide-react";
+import { AlertCircle, ShoppingCart, Tag } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -17,6 +17,7 @@ type ClientProductActionsProps = {
     nombre: string;
     precio: number;
     precioPromo: number;
+    precioDosificacion: number | null;
   };
   selectedAttributes: { [key: string]: string }; // Selected attributes from AtributesSelect
 };
@@ -53,20 +54,16 @@ export const ClientProductActions = ({
         attributes: selectedAttributes, // Pass selected attributes
       });
 
-      if (result.success) {
-        toast(
-          <div className="flex items-center gap-2">
-            <LucideLoader className="animate-spin size-4" />
-            Procediendo con la orden
-          </div>
-        );
-        queryClient.invalidateQueries({ queryKey: ["cartItems"] }); // Invalidate cart items query to
-        router.push("/order/nuevo"); // Redirect to cart page
+      if (result?.success) {
+        toast.success("Producto agregado al carrito exitosamente.");
+        queryClient.invalidateQueries({ queryKey: ["cartItems"] }); // Refresh cart items
+        router.push("/order/nuevo"); // Redirect to order page
       } else {
-        toast.error("Error al agregar al carrito:", result.error);
+        toast.error("Error al agregar el producto al carrito.");
       }
     } catch (error) {
       console.error("Error al agregar al carrito:", error);
+      toast.error("Ocurrió un error al intentar agregar el producto.");
     } finally {
       setLoading(false);
     }
@@ -97,9 +94,7 @@ export const ClientProductActions = ({
 
   // Calculate special offer price (30% discount for 2 items)
   const specialOfferDiscount = 0.25; // 25% discount
-  const specialOfferPrice = Math.round(
-    product.precio * 2 * (1 - specialOfferDiscount)
-  );
+  const specialOfferPrice = product.precioDosificacion ?? product.precio * 2; // Fallback to original price * 2 if null
   const specialOfferOriginalPrice = product.precio * 2;
 
   // Determine which price to display
@@ -109,7 +104,6 @@ export const ClientProductActions = ({
     : regularPromoPrice;
 
   // Calculate savings for special offer
-  const savings = specialOfferOriginalPrice - specialOfferPrice;
 
   return (
     <Card className="p-5 space-y-6 border-muted-foreground/20">
@@ -139,17 +133,31 @@ export const ClientProductActions = ({
                 <span className="font-bold text-base">¡LLÉVATE 2 PARES!</span>
               </div>
               <div className="mt-1 flex items-center gap-2">
-                <Badge className="bg-red-500">50% DESCUENTO</Badge>
-                <span className="text-sm line-through text-gray-500">
-                  ${specialOfferOriginalPrice.toLocaleString("es-CO")}
+                <Badge className="bg-red-500">
+                  {`${Math.round(
+                    ((product.precio * 2 -
+                      (product.precioDosificacion ?? product.precio * 2)) /
+                      (product.precio * 2)) *
+                      100
+                  )}% DESCUENTO`}
+                </Badge>
+                <span className="text-md font-semibold line-through text-gray-500">
+                  ${(product.precio * 2).toLocaleString("es-CO")}
                 </span>
                 <span className="font-bold">
-                  ${specialOfferPrice.toLocaleString("es-CO")}
+                  $
+                  {(
+                    product.precioDosificacion ?? product.precio * 2
+                  ).toLocaleString("es-CO")}
                 </span>
               </div>
               <p className="text-xs mt-1 text-gray-600">
-                ¡Ahorra ${savings.toLocaleString("es-CO")} con esta oferta
-                especial!
+                ¡Ahorra $
+                {(
+                  product.precio * 2 -
+                  (product.precioDosificacion ?? product.precio * 2)
+                ).toLocaleString("es-CO")}{" "}
+                con esta oferta especial!
               </p>
             </div>
             <div className="flex items-center justify-center h-6 w-6 rounded-full border">

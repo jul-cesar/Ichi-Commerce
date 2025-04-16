@@ -26,6 +26,7 @@ export type ProductFormState = {
   descripcion: string;
   precio: string;
   precioPromo: string;
+  precioDosificacion: string;
   imagenPrincipal: string;
 
   categoryId: string;
@@ -43,6 +44,7 @@ const initialState: ProductFormState = {
   precio: "",
   imagenPrincipal: "",
   precioPromo: "",
+  precioDosificacion: "",
   categoryId: "",
   selectedAttributeIds: [],
   variations: [],
@@ -152,11 +154,20 @@ export const productInfoSchema = z
       .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
         message: "El precio promocional debe ser un número positivo",
       }),
+    precioDosificacion: z
+      .string()
+      .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+        message: "El precio promocional debe ser un número positivo",
+      }),
     imagenPrincipal: z.string().min(1, "Por favor, selecciona una imagen"),
   })
   .refine((data) => Number(data.precioPromo) > Number(data.precio), {
     path: ["precioPromo"],
     message: "El precio promocional debe ser mayor que el precio normal",
+  })
+  .refine((data) => Number(data.precio) * 2 < Number(data.precioDosificacion), {
+    path: ["precioDosifiacion"],
+    message: "El precio de la dosoficacion debe ser menor al precio normal x 2",
   });
 
 export const productDetailsSchema = z.object({

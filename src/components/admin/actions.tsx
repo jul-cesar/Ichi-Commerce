@@ -117,6 +117,7 @@ export const guardarProducto = async (inputData: ProductFormState) => {
       descripcion: inputData.descripcion,
       precio: parseFloat(inputData.precio),
       precioPromo: parseFloat(inputData.precioPromo),
+      precioDosificacion: parseFloat(inputData.precioDosificacion),
       categoriaId: inputData.categoryId,
       imagenPrincipal: inputData.imagenPrincipal,
     },

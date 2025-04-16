@@ -261,6 +261,14 @@ const Page = () => {
       return;
     }
 
+    // Clear the cart after order creation
+    await Promise.all(
+      cartItems.map(async (item) => {
+        await removeFromCart(item.id);
+      })
+    );
+    queryClient.invalidateQueries({ queryKey: ["cartItems"] }); // Refresh cart items
+
     const whatsappResponse = await sendOrderToWhatsapp({
       nombre: data.nombre,
       telefono: data.telefono,
@@ -280,13 +288,21 @@ const Page = () => {
               `${attr.valorAtributo.atributo.nombre}: ${attr.valorAtributo.valor}`
           )
           .join(", ");
+
         return {
           nombreProducto: `${item.variacion.producto.nombre} (${attributes})`,
           cantidad: item.cantidad,
-          precio: item.variacion.producto.precio,
+          precio: item.cantidad * item.variacion.producto.precio,
         };
       }),
-      total: subtotal,
+      total: cartItems.reduce((total, item) => {
+        return (
+          total +
+          (item.cantidad === 2
+            ? item.variacion.producto.precioDosificacion ?? 0
+            : item.cantidad * item.variacion.producto.precio)
+        );
+      }, 0),
     });
 
     if (!whatsappResponse.success) {

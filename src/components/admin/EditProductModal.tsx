@@ -33,6 +33,7 @@ type EditProductModalProps = {
     precio: number;
     categoriaId: string;
     precioPromo: number;
+    precioDosificacion: number;
     activo: boolean;
   };
   categories: Prisma.CategoriaGetPayload<{}>[] | undefined;
@@ -54,6 +55,7 @@ export function EditProductModal({
     categoriaId: product.categoriaId,
     activo: product.activo,
     precioPromo: product.precioPromo,
+    precioDosificacion: product.precioDosificacion,
   });
 
   const handleChange = (
@@ -75,11 +77,27 @@ export function EditProductModal({
     e.preventDefault();
     setIsSubmitting(true);
 
+    // Validation checks
+    if (formData.precioPromo <= formData.precio) {
+      alert("El precio promocional debe ser mayor al precio original.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (formData.precioDosificacion >= formData.precio * 2) {
+      alert(
+        "El precio de dosificación debe ser menor al doble del precio original."
+      );
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       // API call to update product
       await editarProducto(product.id, {
         ...formData,
-        precio: formData.precio,
+        precio: Number(formData.precio),
+        precioDosificacion: Number(formData.precioDosificacion),
       });
 
       // Close modal and refresh page
@@ -159,6 +177,20 @@ export function EditProductModal({
                   min="0"
                   step="0.01"
                   value={formData.precioPromo}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <Label htmlFor="precioDosificacion">Precio dosificacion</Label>
+                <Input
+                  id="precioDosificacion"
+                  name="precioDosificacion"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.precioDosificacion}
                   onChange={handleChange}
                   required
                 />

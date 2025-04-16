@@ -24,6 +24,7 @@ export default function ProductInfoStep() {
         precio: state.precio,
         imagenPrincipal: state.imagenPrincipal, // This needs to match the schema field name
         precioPromo: state.precioPromo,
+        precioDosificacion: state.precioDosificacion,
       });
 
       // If validation passes, go to next step
@@ -110,7 +111,24 @@ export default function ProductInfoStep() {
             <p className="text-red-500 text-sm mt-1">{errors.precioPromo}</p>
           )}
         </div>
-
+        <div>
+          <Label htmlFor="precioDosificacion">Precio dosificacion</Label>
+          <Input
+            id="precioDosificacion"
+            value={state.precioDosificacion}
+            onChange={(e) =>
+              updateState({ precioDosificacion: e.target.value })
+            }
+            placeholder="0.00"
+            type="text"
+            className={errors.precioPromo ? "border-red-500" : ""}
+          />
+          {errors.precioPromo && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.precioDosificacion}
+            </p>
+          )}
+        </div>
         <div>
           <Label htmlFor="image">Imagen del producto</Label>
 
