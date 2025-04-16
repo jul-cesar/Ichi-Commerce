@@ -8,7 +8,6 @@ interface ProductCardProps {
   name: string;
   price: number;
   image: string;
-
   category: string;
 }
 
@@ -22,7 +21,6 @@ export default async function ProductCard({
   category,
 }: ProductCardProps) {
   // Función para obtener el stock total de un producto
-
   const obtenerStockTotalProducto = async (productoId: string) => {
     // Obtener todas las variaciones del producto
     const variaciones = await prisma.variacionProducto.findMany({
@@ -43,7 +41,7 @@ export default async function ProductCard({
   };
 
   const stock = await obtenerStockTotalProducto(id);
-  // Aquí puedes usar el stock como desees, por ejemplo, mostrarlo en la tarjeta
+
   return (
     <Link
       href={`/productos/${id}`}
@@ -74,11 +72,15 @@ export default async function ProductCard({
       )}
 
       <div className="mt-3 space-y-1 px-1">
-        <h3 className="font-medium leading-tight">{name}</h3>
+        <h3 className="font-medium leading-tight line-clamp-2">{name}</h3>
         <p className="text-sm text-muted-foreground">{category}</p>
-        <div className="flex items-center justify-between">
-          <p className="font-medium">${price.toLocaleString("es-CO")}</p>
-          <p className="text-xs text-muted-foreground">
+
+        {/* Improved mobile layout for price and stock */}
+        <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-1">
+          <p className="font-medium text-sm sm:text-base break-all">
+            ${price.toLocaleString("es-CO")}
+          </p>
+          <p className="text-xs text-muted-foreground whitespace-nowrap">
             {stock > 0 ? `${stock} disponibles` : "Sin stock"}
           </p>
         </div>

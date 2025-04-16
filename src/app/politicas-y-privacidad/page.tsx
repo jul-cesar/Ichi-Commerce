@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Políticas de Privacidad | ICHI Calzado",
+  title: "Políticas de Privacidad | CH GROUP Calzado",
   description:
-    "Políticas de privacidad para clientes de ICHI Calzado en Colombia",
+    "Políticas de privacidad para clientes de CH GROUP Calzado en Colombia",
 };
 
 export default function PrivacyPolicyPage() {
@@ -26,7 +26,7 @@ export default function PrivacyPolicyPage() {
         <section className="mb-10">
           <h2 className="text-2xl font-semibold mb-4">1. Introducción</h2>
           <p>
-            ICHI Calzado (en adelante, "ICHI", "nosotros", "nuestro") se
+            CH GROUP Calzado (en adelante, "CH GROUP", "nosotros", "nuestro") se
             compromete a proteger la privacidad de los datos personales que
             recopilamos de nuestros clientes y usuarios del sitio web. Esta
             Política de Privacidad explica cómo recopilamos, utilizamos,
@@ -265,11 +265,11 @@ export default function PrivacyPolicyPage() {
           </p>
           <div className="mt-4">
             <p>
-              <strong>ICHI Calzado</strong>
+              <strong>CH GROUP</strong>
             </p>
-            <p>Dirección: [Dirección Física de la Empresa]</p>
+            {/* <p>Dirección: [Dirección Física de la Empresa]</p>
             <p>Correo electrónico: privacidad@ichicalzado.com</p>
-            <p>Teléfono: [Número de Teléfono]</p>
+            <p>Teléfono: [Número de Teléfono]</p> */}
           </div>
         </section>
 

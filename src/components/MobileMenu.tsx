@@ -40,7 +40,7 @@ export default function MobileMenu() {
         <div className="bg-gradient-to-r from-rose-500 to-pink-500 p-6">
           <SheetHeader>
             <SheetTitle className="text-left text-2xl font-bold text-white">
-              ICHI
+              CH GROUP
             </SheetTitle>
           </SheetHeader>
         </div>

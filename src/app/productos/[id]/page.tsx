@@ -1,9 +1,13 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Truck } from "lucide-react";
-import Image from "next/image";
+import { ArrowLeft, Clock, Star, Truck, Users } from "lucide-react";
 import Link from "next/link";
 import { prisma } from "../../../../db/instance";
+
+import DeliveryTimeline from "../delivery-timeline";
+import ImageSlider from "../image-slider";
+import ReviewsSection from "../reviews-section";
 import ProductClient from "./productClient";
 
 export default async function ProductPage({
@@ -55,10 +59,37 @@ export default async function ProductPage({
 
   const stock = await obtenerStockTotalproduct(product?.id || "");
 
-  // Hardcoded original price (for promotion display)
+  // Fake product images for the slider
+  const productImages = [
+    product?.imagenPrincipal || "/placeholder.svg",
+    "/placeholder.svg?height=600&width=600",
+    "/placeholder.svg?height=600&width=600",
+    "/placeholder.svg?height=600&width=600",
+  ];
+
+  // Calculate discount percentage
+  const discountPercentage = Math.round(
+    ((product.precioPromo - product.precio) / product.precioPromo) * 100
+  );
+
+  // Fake purchase count
+  const purchaseCount = 187;
+
+  // Recent buyers (fake data)
+  const recentBuyers = [
+    { name: "María", verified: true },
+    { name: "Carlos", verified: false },
+    { name: "Ana", verified: true },
+  ];
 
   return (
     <main className="flex min-h-screen flex-col">
+      {/* Limited time offer banner */}
+      <div className="bg-red-600 text-white py-2 px-4 text-center font-bold tracking-wide animate-pulse">
+        ¡OFERTA POR TIEMPO LIMITADO! • SOLO QUEDAN {stock} UNIDADES • ENVÍO
+        GRATIS POR 2 DÍAS •
+      </div>
+
       <div className="container p-6">
         <Link
           href="/productos"
@@ -69,24 +100,35 @@ export default async function ProductPage({
         </Link>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
-          {/* Product Image - Fixed on desktop */}
-          <div className="aspect-square overflow-hidden rounded-lg bg-muted md:sticky md:top-6 md:self-start relative">
-            <Badge className="absolute top-4 left-4 z-10 bg-red-500 hover:bg-red-600">
-              PROMOCIÓN
-            </Badge>
-            <Image
-              src={product?.imagenPrincipal || "/placeholder.svg"}
-              alt={product?.nombre ?? ""}
-              width={600}
-              height={600}
-              className="h-full w-full object-cover"
-            />
+          {/* Product Image Slider - Fixed on desktop */}
+          <div className="md:sticky md:top-6 md:self-start">
+            <div className="relative">
+              <Badge className="absolute top-4 left-4 z-10 bg-red-500 hover:bg-red-600">
+                PROMOCIÓN
+              </Badge>
+              <ImageSlider images={productImages} />
+            </div>
+
+            {/* Rating stars */}
+            <div className="mt-4 flex items-center gap-2">
+              <div className="flex">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className="h-5 w-5 fill-yellow-400 text-yellow-400"
+                  />
+                ))}
+              </div>
+              <span className="text-sm font-medium">(196 Reseñas)</span>
+            </div>
           </div>
 
           {/* Product Details - Scrollable */}
           <div className="flex flex-col">
             <div>
-              <h1 className="text-2xl font-bold">{product?.nombre}</h1>
+              <h1 className="text-3xl font-bold uppercase">
+                {product?.nombre}
+              </h1>
               <p className="text-sm text-muted-foreground mt-1">
                 {product?.categoria.nombre}
               </p>
@@ -94,37 +136,97 @@ export default async function ProductPage({
 
             <div className="mt-4 space-y-2">
               <div className="flex items-center gap-2">
-                <p className="text-xl line-through text-muted-foreground">
+                <p className="text-2xl line-through text-muted-foreground">
                   ${product.precioPromo.toLocaleString("es-CO")}
                 </p>
-                <p className="text-xl font-semibold text-muted-foreground">
+                <p className="text-3xl font-bold text-red-600">
                   ${product.precio.toLocaleString("es-CO")}
                 </p>
-                {/* <Badge
+                <Badge
                   variant="outline"
                   className="text-red-500 border-red-500"
                 >
-                  -100%
-                </Badge> */}
+                  -{Math.abs(discountPercentage)}%
+                </Badge>
               </div>
-              {/* <p className="text-3xl font-bold text-green-600">GRATIS</p> */}
-              <p className="text-sm text-muted-foreground">
-                {stock > 0 ? `${stock} disponibles` : "Sin stock"}
-              </p>
 
-              <div className="flex items-center gap-2 mt-4 p-3 bg-blue-50 rounded-md border border-blue-100">
-                <Truck className="size-7 text-blue-500" />
-                <p className="text-md font-medium text-blue-700">
-                  Contraentrega gratuita en toda Colombia
+              <div className="flex items-center gap-2 mt-2">
+                <p className="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md">
+                  {stock > 0 ? `¡Solo quedan ${stock} unidades!` : "Sin stock"}
                 </p>
               </div>
+
+              {/* Recent buyers */}
+              <div className="flex items-center gap-2 mt-4 p-3 bg-gray-50 rounded-md border">
+                <Users className="size-5 text-gray-500" />
+                <div>
+                  <div className="flex items-center gap-1">
+                    {recentBuyers.map((buyer, index) => (
+                      <span
+                        key={index}
+                        className="flex items-center text-sm font-medium"
+                      >
+                        {buyer.name}
+                        {buyer.verified && (
+                          <Badge
+                            variant="outline"
+                            className="ml-1 h-4 w-4 p-0 flex items-center justify-center"
+                          >
+                            ✓
+                          </Badge>
+                        )}
+                        {index < recentBuyers.length - 1 && ", "}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    y{" "}
+                    <span className="font-bold text-black">
+                      +{purchaseCount}
+                    </span>{" "}
+                    personas lo compraron
+                  </p>
+                </div>
+              </div>
+
+              {/* Delivery info */}
+              <div className="flex items-center gap-2 mt-4 p-3 bg-blue-50 rounded-md border border-blue-100">
+                <Truck className="size-7 text-blue-500" />
+                <div>
+                  <p className="text-md font-medium text-blue-700">
+                    Contraentrega gratuita en toda Colombia
+                  </p>
+                  <p className="text-sm text-blue-600">
+                    Recibe en 24-48 horas hábiles
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Delivery timeline */}
+            <div className="my-6">
+              <DeliveryTimeline />
+            </div>
+
+            {/* Add to cart button */}
+            <Button
+              size="lg"
+              className="bg-red-600 hover:bg-red-700 text-white font-bold text-lg py-6"
+            >
+              COMPRAR AHORA
+            </Button>
+
+            <div className="text-center text-sm text-muted-foreground mt-2">
+              <Clock className="inline-block mr-1 h-4 w-4" />
+              Esta oferta termina en:{" "}
+              <span className="font-bold">23:59:42</span>
             </div>
 
             <Separator className="my-6" />
 
             <div className="space-y-6">
               <div>
-                <h3 className="font-medium mb-3">Descripción</h3>
+                <h3 className="font-medium text-lg mb-3">Descripción</h3>
                 <p className="text-sm text-muted-foreground">
                   {product?.descripcion}
                 </p>
@@ -143,6 +245,25 @@ export default async function ProductPage({
                   pedido ahora.
                 </p>
               </div>
+
+              {/* Satisfaction guarantee */}
+              <div className="bg-yellow-50 p-4 rounded-md border border-yellow-100 flex gap-3">
+                <div className="text-yellow-600 text-2xl font-bold">✓</div>
+                <div>
+                  <h3 className="font-medium text-yellow-800 mb-1">
+                    100% Garantía de satisfacción
+                  </h3>
+                  <p className="text-sm text-yellow-700">
+                    Si no estás completamente satisfecho con tu compra, te
+                    devolvemos tu dinero sin hacer preguntas.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Reviews section */}
+            <div className="mt-8">
+              <ReviewsSection />
             </div>
           </div>
         </div>

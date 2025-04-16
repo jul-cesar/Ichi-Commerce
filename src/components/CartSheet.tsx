@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/sheet";
 import { authClient } from "@/lib/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
+import { ShoppingCart, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -183,25 +183,25 @@ function CartItem({
         )}
         <div className="flex items-center justify-between mt-auto">
           <div className="flex items-center">
-            <Button
+            {/* <Button
               variant="outline"
               size="icon"
               className="h-6 w-6 rounded-r-none"
               onClick={() => onQuantityChange(item.id, item.cantidad - 1)}
             >
               <Minus className="h-3 w-3" />
-            </Button>
+            </Button> */}
             <div className="flex h-6 w-8 items-center justify-center border-y text-xs">
               {item.cantidad}
             </div>
-            <Button
+            {/* <Button
               variant="outline"
               size="icon"
               className="h-6 w-6 rounded-l-none"
               onClick={() => onQuantityChange(item.id, item.cantidad + 1)}
             >
               <Plus className="h-3 w-3" />
-            </Button>
+            </Button> */}
           </div>
           <p className="text-sm font-medium">
             $

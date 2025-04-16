@@ -72,18 +72,19 @@ model Verification {
 
 // schema.prisma
 model Producto {
-  id              String                    @id @default(uuid())
-  nombre          String
-  descripcion     String?
-  precio          Float // o Decimal, según tu base de datos
-  precioPromo     Float
-  createdAt       DateTime                  @default(now())
-  updatedAt       DateTime                  @updatedAt
-  categoriaId     String
-  categoria       Categoria                 @relation(fields: [categoriaId], references: [id])
-  imagenPrincipal String?
-  variaciones     VariacionProducto[]
-  imagenes        ImagenVariacionProducto[]
+  id                 String                    @id @default(uuid())
+  nombre             String
+  descripcion        String?
+  precio             Float // o Decimal, según tu base de datos
+  precioPromo        Float
+  precioDosificacion Float?
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+  categoriaId        String
+  categoria          Categoria                 @relation(fields: [categoriaId], references: [id])
+  imagenPrincipal    String?
+  variaciones        VariacionProducto[]
+  imagenes           ImagenVariacionProducto[]
 }
 
 model Categoria {
