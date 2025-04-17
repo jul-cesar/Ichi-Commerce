@@ -14,6 +14,7 @@ export type Variation = {
   id: string;
   attributes: Record<string, string>; // attributeId: optionValue
   stock: number;
+  images: string[];
 };
 
 export type Category = {
@@ -181,6 +182,7 @@ export const variationSchema = z.object({
   id: z.string(),
   attributes: z.record(z.string()),
   stock: z.number().int().min(0, "El stock debe ser un número no negativo"),
+  images: z.array(z.string()).optional(),
 });
 
 export const variationsSchema = z.object({

@@ -145,11 +145,29 @@ export async function addToCart({
     });
 
     if (existingItem) {
+      const newQuantity = existingItem.cantidad + quantity;
+
+      if (newQuantity > 2) {
+        return {
+          success: true,
+          error:
+            "No puedes agregar más de 2 unidades de este producto al carrito.",
+        };
+      }
+
       await prisma.cartItem.update({
         where: { id: existingItem.id },
-        data: { cantidad: existingItem.cantidad + quantity },
+        data: { cantidad: newQuantity },
       });
     } else {
+      if (quantity > 2) {
+        return {
+          success: false,
+          error:
+            "No puedes agregar más de 2 unidades de este producto al carrito.",
+        };
+      }
+
       await prisma.cartItem.create({
         data: {
           cartId: cart.id,

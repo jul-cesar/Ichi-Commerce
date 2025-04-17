@@ -131,6 +131,11 @@ export const guardarProducto = async (inputData: ProductFormState) => {
         data: {
           productoId: producto.id,
           stock: variation.stock,
+          imagenes: {
+            create: variation.images.map((image) => ({
+              url: image,
+            })),
+          },
         },
       });
 

@@ -45,6 +45,7 @@ import Image from "next/image";
 import { toast } from "sonner";
 
 import { Textarea } from "@/components/ui/textarea";
+import { Prisma } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import colombia from "../../../utils/colombia.json";
 import {
@@ -81,7 +82,16 @@ function CartItem({
   onQuantityChange,
   onRemove,
 }: {
-  item: any;
+  item: Prisma.CartItemGetPayload<{
+    include: {
+      variacion: {
+        include: {
+          producto: true;
+          atributos: true;
+        };
+      };
+    };
+  }>;
   onQuantityChange: (itemId: string, newQuantity: number) => void;
   onRemove: (itemId: string) => void;
 }) {
@@ -92,6 +102,9 @@ function CartItem({
           `${attr.valorAtributo.atributo.nombre}: ${attr.valorAtributo.valor}`
       )
       .join(", ") || "";
+
+  const isPromoActive =
+    item.cantidad === 2 && item.variacion.producto.precioDosificacion;
 
   return (
     <div className="flex gap-3 py-3">
@@ -123,32 +136,31 @@ function CartItem({
         )}
         <div className="flex items-center justify-between mt-auto">
           <div className="flex items-center">
-            {/* <Button
-              variant="outline"
-              size="icon"
-              className="h-6 w-6 rounded-r-none"
-              onClick={() => onQuantityChange(item.id, item.cantidad - 1)}
-            >
-              <Minus className="h-3 w-3" />
-            </Button> */}
             <div className="flex h-6 items-center justify-center border-y text-xs">
               Cantidad: {item.cantidad}
             </div>
-            {/* <Button
-              variant="outline"
-              size="icon"
-              className="h-6 w-6 rounded-l-none"
-              onClick={() => onQuantityChange(item.id, item.cantidad + 1)}
-            >
-              <Plus className="h-3 w-3" />
-            </Button> */}
           </div>
-          <p className="text-sm font-medium">
-            $
-            {(item.variacion.producto.precio * item.cantidad).toLocaleString(
-              "es-CO"
+          <div className="text-right">
+            {isPromoActive && (
+              <div className="flex flex-col text-xs text-green-600 font-semibold">
+                ¡Promo activa:{" "}
+                <span className="line-through text-sm text-red-600">
+                  {" "}
+                  {(
+                    item.variacion.producto.precio * item.cantidad
+                  ).toLocaleString("es-CO")}
+                </span>
+              </div>
             )}
-          </p>
+            <p className="text-sm font-medium">
+              $
+              {(isPromoActive
+                ? item.variacion.producto.precioDosificacion ?? 0 // Fallback to 0 if null
+                : item.cantidad * (item.variacion.producto.precio ?? 0)
+              ) // Fallback to 0 if null
+                .toLocaleString("es-CO")}
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -599,14 +611,42 @@ const Page = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Subtotal</span>
-                        <span>${subtotal.toLocaleString("es-CO")}</span>
+                        <span>
+                          $
+                          {cartItems
+                            .reduce((total, item) => {
+                              return (
+                                total +
+                                (item.cantidad === 2
+                                  ? item.variacion.producto
+                                      .precioDosificacion ?? 0
+                                  : item.cantidad *
+                                    item.variacion.producto.precio)
+                              );
+                            }, 0)
+                            .toLocaleString("es-CO")}
+                        </span>
                       </div>
 
                       <Separator className="my-2" />
 
                       <div className="flex justify-between font-bold">
                         <span>Total</span>
-                        <span>${subtotal.toLocaleString("es-CO")}</span>
+                        <span>
+                          $
+                          {cartItems
+                            .reduce((total, item) => {
+                              return (
+                                total +
+                                (item.cantidad === 2
+                                  ? item.variacion.producto
+                                      .precioDosificacion ?? 0
+                                  : item.cantidad *
+                                    item.variacion.producto.precio)
+                              );
+                            }, 0)
+                            .toLocaleString("es-CO")}
+                        </span>
                       </div>
                     </div>
                   </div>

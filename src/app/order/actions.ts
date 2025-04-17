@@ -50,11 +50,15 @@ export async function createOrderWithoutLogin({
     for (const item of items) {
       const variacion = await prisma.variacionProducto.findUnique({
         where: { id: item.variacionId },
-        select: { producto: { select: { precio: true } } },
+        select: { producto: { select: { precio: true, precioDosificacion: true } } },
       });
 
       if (variacion?.producto?.precio) {
-        montoTotal += item.cantidad * variacion.producto.precio;
+        if (item.cantidad === 2 && variacion.producto.precioDosificacion) {
+          montoTotal += variacion.producto.precioDosificacion; // Use precioDosificacion for 2 items
+        } else {
+          montoTotal += item.cantidad * variacion.producto.precio; // Regular price for other quantities
+        }
       }
     }
 
@@ -135,11 +139,15 @@ export async function createOrder({
     for (const item of items) {
       const variacion = await prisma.variacionProducto.findUnique({
         where: { id: item.variacionId },
-        select: { producto: { select: { precio: true } } },
+        select: { producto: { select: { precio: true, precioDosificacion: true } } },
       });
 
       if (variacion?.producto?.precio) {
-        montoTotal += item.cantidad * variacion.producto.precio;
+        if (item.cantidad === 2 && variacion.producto.precioDosificacion) {
+          montoTotal += variacion.producto.precioDosificacion; // Use precioDosificacion for 2 items
+        } else {
+          montoTotal += item.cantidad * variacion.producto.precio; // Regular price for other quantities
+        }
       }
     }
 

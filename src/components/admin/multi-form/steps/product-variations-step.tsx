@@ -22,9 +22,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { UploadDropzone } from "@/utils/uploadthing";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { getAttributes } from "../../actions";
 import { useProductForm, Variation, variationsSchema } from "../formContext";
+import { OurFileRouter } from "@/app/api/uploadthing/core";
 
 type VariationFormProps = {
   onSubmit: () => Promise<void>;
@@ -42,6 +45,7 @@ export default function ProductVariationsStep({
     id: crypto.randomUUID(),
     attributes: {},
     stock: 0,
+    images: [],
   });
 
   const { data: sampleAttributes } = useQuery({
@@ -118,6 +122,7 @@ export default function ProductVariationsStep({
       id: newVariation.id as string,
       attributes: newVariation.attributes as Record<string, string>,
       stock: newVariation.stock as number,
+      images: newVariation.images || [],
     });
 
     // Reset the form for a new variation
@@ -125,6 +130,7 @@ export default function ProductVariationsStep({
       id: crypto.randomUUID(),
       attributes: {},
       stock: 0,
+      images: [],
     });
     setErrors({});
   };
@@ -232,6 +238,65 @@ export default function ProductVariationsStep({
                   <p className="text-red-500 text-sm mt-1">{errors.stock}</p>
                 )}
               </div>
+
+              {/* Upload multiple images for the variation */}
+              <div>
+                <Label htmlFor="variationImages">
+                  Imágenes de la variación
+                </Label>
+                <UploadDropzone<OurFileRouter>
+                  endpoint="imageUploader"
+                  onUploadBegin={(name) => {
+                    toast.loading(`subiendo ${name}...`);
+                  }}
+                  onDrop={(acceptedFiles) => {
+                    // Do something with the accepted files
+                    console.log("Accepted files: ", acceptedFiles);
+                  }}
+                  onClientUploadComplete={(res) => {
+                    alert(res);
+                    const newImages = res.map((file) => file.ufsUrl);
+                    setNewVariation((prev) => ({
+                      ...prev,
+                      images: [...(prev.images || []), ...newImages],
+                    }));
+                    toast.success("Imágenes subidas correctamente");
+                  }}
+                  onUploadError={(error: Error) => {
+                    toast.error(
+                      `Error al subir las imágenes: ${error.message}`
+                    );
+                  }}
+                />
+                <div className="mt-4 grid grid-cols-3 gap-4">
+                  {newVariation.images?.map((image, index) => (
+                    <div
+                      key={index}
+                      className="relative w-32 h-32 border rounded-md overflow-hidden"
+                    >
+                      <img
+                        src={image}
+                        alt={`Uploaded ${index}`}
+                        className="object-cover w-full h-full"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 h-6 w-6"
+                        onClick={() =>
+                          setNewVariation((prev) => ({
+                            ...prev,
+                            images: prev.images?.filter((_, i) => i !== index),
+                          }))
+                        }
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </CardContent>
             <CardFooter>
               <Button
@@ -265,6 +330,16 @@ export default function ProductVariationsStep({
                       <p className="text-sm text-muted-foreground">
                         Stock: {variation.stock}
                       </p>
+                      <div className="mt-2 flex gap-2">
+                        {variation.images.map((image, index) => (
+                          <img
+                            key={index}
+                            src={image}
+                            alt={`Variation ${index}`}
+                            className="w-12 h-12 object-cover rounded-md border"
+                          />
+                        ))}
+                      </div>
                     </div>
                     <Button
                       variant="ghost"

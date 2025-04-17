@@ -57,16 +57,18 @@ export default async function OrderSuccessPage({
     minute: "2-digit",
   }).format(order.createdAt);
 
-  const totalPromo = order.items.reduce(
-    (total, item) =>
-      total + item.cantidad * item.variacion.producto.precioPromo,
-    0
-  );
+  const totalNeto = order.items.reduce((total, item) => {
+    return (
+      total +
+      (item.cantidad === 2
+        ? item.variacion.producto.precioDosificacion ?? 0
+        : item.cantidad * item.variacion.producto.precio)
+    );
+  }, 0);
 
-  const totalNeto = order.items.reduce(
-    (total, item) => total + item.cantidad * item.variacion.producto.precio,
-    0
-  );
+  const subtotalNoPromo = order.items.reduce((total, item) => {
+    return total + item.variacion.producto.precio * item.cantidad;
+  }, 0);
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4 md:p-8">
@@ -175,7 +177,7 @@ export default async function OrderSuccessPage({
               <div className="flex justify-between">
                 <p className="text-gray-600">Subtotal</p>
                 <p className="line-through text-gray-500">
-                  ${totalPromo.toLocaleString("CO")}
+                  ${subtotalNoPromo.toLocaleString("CO")}
                 </p>
               </div>
               <div className="flex justify-between">

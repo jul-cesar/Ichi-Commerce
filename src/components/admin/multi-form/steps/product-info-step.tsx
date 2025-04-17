@@ -14,6 +14,7 @@ import { productInfoSchema, useProductForm } from "../formContext";
 export default function ProductInfoStep() {
   const { state, updateState, nextStep } = useProductForm();
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
   const validateAndContinue = () => {
     try {
