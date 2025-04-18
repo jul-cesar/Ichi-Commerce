@@ -96,14 +96,6 @@ export default function Navbar() {
         </nav>
 
         <div className="flex flex-1 items-center justify-end space-x-4">
-          {session?.user.role === "admin" && (
-            <Link
-              href="/admin"
-              className="hidden md:flex gap-2 hover:underline"
-            >
-              <ShieldUser /> Admin
-            </Link>
-          )}
           <SearchDialog />
 
           {!session?.user.id ? (

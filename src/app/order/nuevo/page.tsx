@@ -177,7 +177,8 @@ const Page = () => {
   const { data: cartItems = [], isLoading } = useQuery({
     queryKey: ["cartItems", session?.user?.id],
     queryFn: () => getCartItems(session?.user?.id),
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: true, // Refetch when the window regains focus
+    refetchOnMount: true, // Refetch when the component mounts
   });
 
   // Calcular totales

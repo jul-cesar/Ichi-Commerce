@@ -18,7 +18,7 @@ import { authClient } from "@/lib/client";
 export default function MobileMenu() {
   const [openCategories, setOpenCategories] = useState<string[]>([]);
 
-    const { data: session } = authClient.useSession();
+  const { data: session } = authClient.useSession();
 
   const toggleCategory = (category: string) => {
     if (openCategories.includes(category)) {
@@ -93,12 +93,6 @@ export default function MobileMenu() {
 
         <Separator className="my-2" />
 
-        {session?.user.role === "admin" && (
-          <Link href="/admin" className="hidden md:flex gap-2 hover:underline">
-            <ShieldUser /> Admin
-          </Link>
-        )}
-
         <nav className="px-2">
           <Link
             href="/"
@@ -114,6 +108,15 @@ export default function MobileMenu() {
             <Home className="mr-3 h-4 w-4" />
             Productos
           </Link>
+
+          {session?.user.role === "admin" && (
+            <Link
+              href="/admin"
+              className="flex h-12 items-center rounded-md px-4 text-sm font-medium transition-colors hover:bg-accent"
+            >
+              <ShieldUser className="mr-3 size-5" /> Admin
+            </Link>
+          )}
 
           {/* <Collapsible
             open={openCategories.includes("productos")}

@@ -57,9 +57,9 @@ export default function SearchDialog() {
         </div>
 
         <div className="p-4">
-          <h3 className="text-sm font-medium text-muted-foreground mb-2">
+          {/* <h3 className="text-sm font-medium text-muted-foreground mb-2">
             Sugerencias
-          </h3>
+          </h3> */}
           {/* <div className="flex flex-wrap gap-2">
             {suggestions.map((suggestion) => (
               <Button
