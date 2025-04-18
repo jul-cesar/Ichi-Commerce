@@ -194,7 +194,7 @@ model OrderItem {
   orderId     String
   order       Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
   variacionId String
-  variacion   VariacionProducto @relation(fields: [variacionId], references: [id])
+  variacion   VariacionProducto @relation(fields: [variacionId], references: [id], onDelete: Cascade)
   cantidad    Int
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt

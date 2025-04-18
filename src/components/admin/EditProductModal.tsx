@@ -98,6 +98,7 @@ export function EditProductModal({
         ...formData,
         precio: Number(formData.precio),
         precioDosificacion: Number(formData.precioDosificacion),
+        precioPromo: Number(formData.precioPromo),
       });
 
       // Close modal and refresh page
