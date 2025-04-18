@@ -99,7 +99,9 @@ export default function ProductInfoStep() {
         </div>
 
         <div>
-          <Label htmlFor="pricePromo">Precio promocional</Label>
+          <Label htmlFor="pricePromo">
+            Precio promocional (precio "anterior")
+          </Label>
           <Input
             id="pricePromo"
             value={state.precioPromo}
@@ -113,7 +115,7 @@ export default function ProductInfoStep() {
           )}
         </div>
         <div>
-          <Label htmlFor="precioDosificacion">Precio dosificacion</Label>
+          <Label htmlFor="precioDosificacion">Precio dosificacion (precio de la promo de 2)</Label>
           <Input
             id="precioDosificacion"
             value={state.precioDosificacion}
