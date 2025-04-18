@@ -1,3 +1,5 @@
+"use client";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -6,10 +8,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function AdminHeader() {
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+      {/* Add SidebarTrigger for mobile */}
+
+      <SidebarTrigger className="md:hidden" />
+
       <div className="w-full flex-1">
         <form>
           {/* <div className="relative">
