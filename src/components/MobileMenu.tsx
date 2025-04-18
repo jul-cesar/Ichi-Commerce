@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, MenuIcon } from "lucide-react";
+import { Home, MenuIcon, ShieldUser } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -13,9 +13,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { authClient } from "@/lib/client";
 
 export default function MobileMenu() {
   const [openCategories, setOpenCategories] = useState<string[]>([]);
+
+    const { data: session } = authClient.useSession();
 
   const toggleCategory = (category: string) => {
     if (openCategories.includes(category)) {
@@ -89,6 +92,12 @@ export default function MobileMenu() {
         </div>
 
         <Separator className="my-2" />
+
+        {session?.user.role === "admin" && (
+          <Link href="/admin" className="hidden md:flex gap-2 hover:underline">
+            <ShieldUser /> Admin
+          </Link>
+        )}
 
         <nav className="px-2">
           <Link

@@ -60,7 +60,7 @@ export default function SearchDialog() {
           <h3 className="text-sm font-medium text-muted-foreground mb-2">
             Sugerencias
           </h3>
-          <div className="flex flex-wrap gap-2">
+          {/* <div className="flex flex-wrap gap-2">
             {suggestions.map((suggestion) => (
               <Button
                 key={suggestion}
@@ -76,7 +76,7 @@ export default function SearchDialog() {
                 {suggestion}
               </Button>
             ))}
-          </div>
+          </div> */}
         </div>
       </DialogContent>
     </Dialog>
