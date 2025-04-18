@@ -27,7 +27,6 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getAttributes } from "../../actions";
 import { useProductForm, Variation, variationsSchema } from "../formContext";
-import { OurFileRouter } from "@/app/api/uploadthing/core";
 
 type VariationFormProps = {
   onSubmit: () => Promise<void>;
@@ -244,28 +243,48 @@ export default function ProductVariationsStep({
                 <Label htmlFor="variationImages">
                   Imágenes de la variación
                 </Label>
-                <UploadDropzone<OurFileRouter>
+                <UploadDropzone
+                  content={{
+                    button: "Seleccionar archivos",
+                    allowedContent: "Imágenes hasta 4MB",
+                    label: "o arrastra y suelta aquí",
+                  }}
+                  appearance={{
+                    button:
+                      "bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors",
+                    container:
+                      "flex flex-col items-center justify-center gap-4",
+                    uploadIcon: "text-blue-500 w-12 h-12",
+                    allowedContent: "text-sm text-gray-500",
+                  }}
                   endpoint="imageUploader"
                   onUploadBegin={(name) => {
-                    toast.loading(`subiendo ${name}...`);
-                  }}
-                  onDrop={(acceptedFiles) => {
-                    // Do something with the accepted files
-                    console.log("Accepted files: ", acceptedFiles);
+                    toast.info(`Subiendo ${name}...`, {
+                      description:
+                        "Por favor espera mientras procesamos tu archivo",
+                    });
                   }}
                   onClientUploadComplete={(res) => {
-                    alert(res);
-                    const newImages = res.map((file) => file.ufsUrl);
-                    setNewVariation((prev) => ({
-                      ...prev,
-                      images: [...(prev.images || []), ...newImages],
-                    }));
-                    toast.success("Imágenes subidas correctamente");
+                    if (res && res.length > 0) {
+                      const newImages = res.map((file) => file.url);
+                      setNewVariation((prev: any) => ({
+                        ...prev,
+                        images: [...(prev.images || []), ...newImages],
+                      }));
+                      toast.success("¡Imágenes subidas correctamente!", {
+                        description: `Se han subido ${res.length} ${
+                          res.length === 1 ? "imagen" : "imágenes"
+                        }`,
+                      });
+                    }
                   }}
                   onUploadError={(error: Error) => {
-                    toast.error(
-                      `Error al subir las imágenes: ${error.message}`
-                    );
+                    toast.error("Error al subir las imágenes", {
+                      description: `${
+                        error.message ||
+                        "Ha ocurrido un problema durante la subida"
+                      }`,
+                    });
                   }}
                 />
                 <div className="mt-4 grid grid-cols-3 gap-4">

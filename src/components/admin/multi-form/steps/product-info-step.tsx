@@ -153,40 +153,71 @@ export default function ProductInfoStep() {
           ) : (
             <div className="mt-2">
               <UploadButton
-                className="border-border  text-black"
+                className="border-border text-black"
                 endpoint="imageUploader"
                 appearance={{
-                  button:
-                    "ut-ready:bg-primary h-full p-4 ut-uploading:cursor-not-allowed rounded bg-red-500 bg-none after:bg-orange-400",
+                  button: `ut-ready:bg-gradient-to-r from-blue-500 to-blue-600 
+                  ut-uploading:from-blue-400 ut-uploading:to-blue-500 
+                  h-full p-4 ut-uploading:cursor-not-allowed rounded-md 
+                  shadow-md hover:shadow-lg transition-all duration-200 
+                  ut-uploaded:from-green-500 ut-uploaded:to-green-600`,
                   container:
-                    "w-max flex rounded-md border-cyan-300 bg-slate-800",
+                    "w-max flex rounded-md border border-blue-300 overflow-hidden",
                   allowedContent:
-                    "flex h-8 flex-col items-center justify-center px-2 text-white",
+                    "flex h-8 flex-col items-center justify-center px-3 text-white",
                 }}
                 content={{
-                  button({ ready }) {
-                    if (ready)
+                  button({ ready, isUploading }) {
+                    if (isUploading) {
                       return (
-                        <div className="flex flex-col items-center gap-2">
-                          Sube la imagen principal del producto <Upload />
+                        <div className="flex items-center gap-2 text-white">
+                          <Loader2 className="animate-spin size-5" />
+                          <span>Subiendo...</span>
                         </div>
                       );
-                    return "Preparando...";
+                    }
+
+                    if (ready) {
+                      return (
+                        <div className="flex items-center gap-2 text-white">
+                          <Upload className="size-5" />
+                          <span>Subir imagen principal</span>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="flex items-center gap-2 text-white">
+                        <Loader2 className="animate-spin size-5" />
+                        <span>Preparando...</span>
+                      </div>
+                    );
                   },
-                  allowedContent({ ready, fileTypes, isUploading }) {
-                    if (isUploading)
-                      return <Loader2 className="animate-spin size-4" />;
+                  allowedContent({ isUploading }) {
+                    if (isUploading) {
+                      return (
+                        <Loader2 className="animate-spin size-4 text-blue-200" />
+                      );
+                    }
+                    return <span className="text-xs">JPG, PNG, WebP</span>;
                   },
                 }}
                 onClientUploadComplete={(res) => {
                   if (res && res.length > 0) {
                     // Update the state with the uploaded image URL
                     updateState({ imagenPrincipal: res[0].ufsUrl });
+
+                    toast.success("Imagen subida correctamente", {
+                      description: "La imagen principal ha sido actualizada",
+                    });
                   }
-                  toast.success("Imagen subida correctamente");
                 }}
                 onUploadError={(error: Error) => {
-                  toast.error(`Error al subir la imagen: ${error.message}`);
+                  toast.error("Error al subir la imagen", {
+                    description:
+                      error.message ||
+                      "Ha ocurrido un problema durante la subida",
+                  });
                 }}
               />
               {errors.imagenPrincipal && (

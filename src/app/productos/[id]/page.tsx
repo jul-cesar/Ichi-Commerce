@@ -21,6 +21,7 @@ export default async function ProductPage({
       categoria: true,
       variaciones: {
         include: {
+          imagenes: true,
           atributos: {
             include: {
               valorAtributo: {
@@ -62,9 +63,9 @@ export default async function ProductPage({
   // Fake product images for the slider
   const productImages = [
     product?.imagenPrincipal || "/placeholder.svg",
-    "/placeholder.svg?height=600&width=600",
-    "/placeholder.svg?height=600&width=600",
-    "/placeholder.svg?height=600&width=600",
+    ...product.variaciones.flatMap(
+      (variacion) => variacion.imagenes.map((img) => img.url) || []
+    ), // Include images from variations
   ];
 
   // Calculate discount percentage

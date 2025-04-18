@@ -26,7 +26,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         hostname: "8ec8whaldy.ufs.sh",
+
       },
+      {
+        hostname:"utfs.io"
+      }
     ],
   },
   
