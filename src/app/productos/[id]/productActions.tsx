@@ -1,5 +1,6 @@
 "use client";
 
+import CheckoutModal from "@/app/order/nuevo/OrderModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 type ClientProductActionsProps = {
+  promoPorcent?: number;
   product: {
     variaciones: {
       id: string;
@@ -52,6 +54,7 @@ export type SelectedProduct = {
 
 export const ClientProductActions = ({
   product,
+  promoPorcent,
   selectedAttributes,
 }: ClientProductActionsProps) => {
   const [loading, setLoading] = useState(false);
@@ -70,6 +73,9 @@ export const ClientProductActions = ({
   const queryClient = useQueryClient();
   const [attributesNeeded, setAttributesNeeded] = useState(2);
   const router = useRouter();
+  const [selectedProductsForCheckout, setSelectedProductsForCheckout] =
+    useState<SelectedProduct[]>([]);
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
 
   // Populate attributes and options based on product variations
   useEffect(() => {
@@ -225,12 +231,8 @@ export const ClientProductActions = ({
       }
     }
 
-    // Navigate to the order page with the selected products
-    router.push(
-      `/order/nuevo?products=${encodeURIComponent(
-        JSON.stringify(selectedProducts)
-      )}`
-    );
+    setSelectedProductsForCheckout(selectedProducts);
+    setIsCheckoutModalOpen(true);
   };
 
   const handleQuantityChange = (newQuantity: number) => {
@@ -463,6 +465,14 @@ export const ClientProductActions = ({
       <div className="text-center text-sm text-green-600 font-medium">
         ENVÍO GRATIS a toda Colombia
       </div>
+
+      {/* Checkout Modal */}
+      <CheckoutModal
+        promoPercent={promoPorcent}
+        isOpen={isCheckoutModalOpen}
+        onClose={() => setIsCheckoutModalOpen(false)}
+        products={selectedProductsForCheckout}
+      />
     </Card>
   );
 };

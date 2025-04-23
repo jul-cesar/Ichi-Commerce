@@ -234,7 +234,10 @@ export default async function ProductPage({
               </div>
 
               {/* Pass product data to the client component */}
-              <ProductClient product={product} />
+              <ProductClient
+                product={product}
+                promoPercentage={discountPercentage}
+              />
 
               <div className="bg-green-50 p-4 rounded-md border border-green-100">
                 <h3 className="font-medium text-green-800 mb-2">

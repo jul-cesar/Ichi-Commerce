@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ClientProductActions } from "./productActions";
 
 type ProductClientProps = {
+  promoPercentage?: number;
   product: Prisma.ProductoGetPayload<{
     include: {
       categoria: true;
@@ -26,18 +27,19 @@ type ProductClientProps = {
   }>;
 };
 
-export default function ProductClient({ product }: ProductClientProps) {
+export default function ProductClient({ product, promoPercentage }: ProductClientProps) {
   const [selectedAttributes, setSelectedAttributes] = useState<{
     [key: string]: string;
   }>({});
 
   return (
-    <div className="flex flex-col gap-4">                                                                           
+    <div className="flex flex-col gap-4">
       <AtributesSelect
         product={product}
         onSelectionChange={setSelectedAttributes}
       />
       <ClientProductActions
+      promoPorcent={promoPercentage}
         product={product}
         selectedAttributes={selectedAttributes}
       />
