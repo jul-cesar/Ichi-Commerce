@@ -1,17 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { CreditCard, Loader2, ShoppingBag } from "lucide-react";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import {
-  getCartItems,
-  removeFromCart,
-  updateCartItemQuantity,
-} from "@/app/productos/actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -40,12 +36,10 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { authClient } from "@/lib/client";
-import { Trash2 } from "lucide-react";
-import Image from "next/image";
 import { toast } from "sonner";
 
 import { Textarea } from "@/components/ui/textarea";
-import { Prisma } from "@prisma/client";
+import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import colombia from "../../../utils/colombia.json";
 import {
@@ -54,7 +48,26 @@ import {
   sendOrderToWhatsapp,
 } from "../actions";
 
-// Esquema de validación con Zod
+type SelectedProduct = {
+  productId: string;
+  nombre: string;
+  quantity: number;
+  attributes: { [key: string]: string };
+  price: number;
+  priceDosificacion?: number;
+  variacionId: string;
+  variaciones: {
+    id: string;
+    stock: number;
+    atributos: {
+      valorAtributo: {
+        atributo: { nombre: string };
+        valor: string;
+      };
+    }[];
+  }[];
+};
+
 const formSchema = z.object({
   nombre: z
     .string()
@@ -77,143 +90,121 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-function CartItem({
-  item,
-  onQuantityChange,
-  onRemove,
-}: {
-  item: Prisma.CartItemGetPayload<{
-    include: {
-      variacion: {
-        include: {
-          producto: true;
-          atributos: true;
-        };
-      };
-    };
-  }>;
-  onQuantityChange: (itemId: string, newQuantity: number) => void;
-  onRemove: (itemId: string) => void;
-}) {
-  const attributeTexts =
-    item.variacion?.atributos
-      .map(
-        (attr: any) =>
-          `${attr.valorAtributo.atributo.nombre}: ${attr.valorAtributo.valor}`
-      )
-      .join(", ") || "";
-
-  const isPromoActive =
-    item.cantidad === 2 && item.variacion.producto.precioDosificacion;
-
-  return (
-    <div className="flex gap-3 py-3">
-      <div className="h-20 w-20 overflow-hidden rounded-md bg-muted">
-        <Image
-          src={item.variacion.producto.imagenPrincipal || "/placeholder.svg"}
-          alt={item.variacion.producto.nombre}
-          width={80}
-          height={80}
-          className="h-full w-full object-cover"
-        />
-      </div>
-      <div className="flex flex-1 flex-col gap-1">
-        <div className="flex justify-between">
-          <span className="line-clamp-1 text-sm font-medium">
-            {item.variacion.producto.nombre}
-          </span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6"
-            onClick={() => onRemove(item.id)}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-        {attributeTexts && (
-          <p className="text-xs text-muted-foreground">{attributeTexts}</p>
-        )}
-        <div className="flex items-center justify-between mt-auto">
-          <div className="flex items-center">
-            <div className="flex h-6 items-center justify-center border-y text-xs">
-              Cantidad: {item.cantidad}
-            </div>
-          </div>
-          <div className="text-right">
-            {isPromoActive && (
-              <div className="flex flex-col text-xs text-green-600 font-semibold">
-                ¡Promo activa:{" "}
-                <span className="line-through text-sm text-red-600">
-                  {" "}
-                  {(
-                    item.variacion.producto.precio * item.cantidad
-                  ).toLocaleString("es-CO")}
-                </span>
-              </div>
-            )}
-            <p className="text-sm font-medium">
-              $
-              {(isPromoActive
-                ? item.variacion.producto.precioDosificacion ?? 0 // Fallback to 0 if null
-                : item.cantidad * (item.variacion.producto.precio ?? 0)
-              ) // Fallback to 0 if null
-                .toLocaleString("es-CO")}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 const Page = () => {
+  const searchParams = useSearchParams();
+  const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>(
+    []
+  );
+  const [availableAttributes, setAvailableAttributes] = useState<{
+    [key: string]: string[];
+  }>({});
+  const [allAttributes, setAllAttributes] = useState<{
+    [key: string]: string[];
+  }>({});
   const [cities, setCities] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { data: session } = authClient.useSession();
   const queryClient = useQueryClient();
 
-  // Obtener items del carrito
-  const { data: cartItems = [], isLoading } = useQuery({
-    queryKey: ["cartItems", session?.user?.id],
-    queryFn: () => getCartItems(session?.user?.id),
-    refetchOnWindowFocus: true, // Refetch when the window regains focus
-    refetchOnMount: true, // Refetch when the component mounts
-  });
+  useEffect(() => {
+    const products = searchParams.get("products");
+    if (products) {
+      const parsedProducts = JSON.parse(products);
+      setSelectedProducts(parsedProducts);
 
-  // Calcular totales
-  const totalItems = cartItems.reduce(
-    (total, item) => total + item.cantidad,
-    0
-  );
-  const subtotal = cartItems.reduce(
-    (total, item) => total + item.cantidad * item.variacion.producto.precio,
-    0
-  );
+      console.log(parsedProducts);
 
-  // Funciones para manejar el carrito
-  const handleQuantityChange = async (itemId: string, newQuantity: number) => {
-    if (newQuantity < 1) return;
-    const upd = await updateCartItemQuantity(itemId, newQuantity);
-    if (upd.success) {
-      toast.success("Cantidad actualizada");
-      queryClient.invalidateQueries({ queryKey: ["cartItems"] });
-    } else {
-      toast.error("Error al actualizar la cantidad del producto");
+      const attributesMap: { [key: string]: string[] } = {};
+      const optionsMap: { [key: string]: string[] } = {};
+
+      parsedProducts?.forEach((product: SelectedProduct) => {
+        product.attributes &&
+          Object.entries(product.attributes)?.forEach(([key, value]) => {
+            if (!attributesMap[key]) attributesMap[key] = [];
+            if (!attributesMap[key].includes(value))
+              attributesMap[key].push(value);
+
+            if (!optionsMap[key]) optionsMap[key] = [];
+            if (!optionsMap[key].includes(value)) optionsMap[key].push(value);
+          });
+      });
+
+      setAllAttributes(optionsMap);
+      setAvailableAttributes(optionsMap);
     }
+  }, [searchParams]);
+
+  const handleAttributeChange = (
+    productId: string,
+    attribute: string,
+    value: string
+  ) => {
+    setSelectedProducts((prev) =>
+      prev.map((product) =>
+        product.productId === productId
+          ? {
+              ...product,
+              attributes: {
+                ...product.attributes,
+                [attribute]: value,
+              },
+            }
+          : product
+      )
+    );
   };
 
-  const handleRemove = async (itemId: string) => {
-    const del = await removeFromCart(itemId);
-    if (del.success) {
-      toast.success("Producto eliminado del carrito");
-      queryClient.invalidateQueries({ queryKey: ["cartItems"] });
-    } else {
-      toast.error("Error al eliminar el producto del carrito");
-    }
+  const getAvailableOptions = (
+    product: SelectedProduct,
+    attribute: string,
+    currentSelections: { [key: string]: string }
+  ): string[] => {
+    const otherSelections = { ...currentSelections };
+    delete otherSelections[attribute];
+
+    const validVariations = product.variaciones.filter((variation) =>
+      Object.entries(otherSelections).every(([key, value]) =>
+        variation.atributos.some(
+          (attr) =>
+            attr.valorAtributo.atributo.nombre === key &&
+            attr.valorAtributo.valor === value
+        )
+      )
+    );
+
+    const options = new Set<string>();
+    validVariations.forEach((variation) => {
+      variation.atributos.forEach((attr) => {
+        if (attr.valorAtributo.atributo.nombre === attribute) {
+          options.add(attr.valorAtributo.valor);
+        }
+      });
+    });
+
+    return Array.from(options);
   };
 
-  // Inicializar React Hook Form con Zod
+  const handleAttributeSelection = (
+    productId: string,
+    attribute: string,
+    value: string
+  ) => {
+    setSelectedProducts((prev) =>
+      prev.map((product) =>
+        product.productId === productId
+          ? {
+              ...product,
+              attributes: {
+                ...product.attributes,
+                [attribute]:
+                  product.attributes[attribute] === value ? "" : value,
+              },
+            }
+          : product
+      )
+    );
+  };
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -228,12 +219,10 @@ const Page = () => {
     },
   });
 
-  // Manejar cambio de departamento
   const handleDepartmentChange = (value: string) => {
     form.setValue("departamento", value);
     form.setValue("ciudad", "");
 
-    // Encontrar el departamento seleccionado y obtener sus ciudades
     const departmentData = colombia.find((item) => item.departamento === value);
 
     if (departmentData) {
@@ -244,11 +233,14 @@ const Page = () => {
   };
   const router = useRouter();
 
+  const sanitizeText = (text: string): string => {
+    return text
+      .replace(/\n|\t/g, " ") // Replace new-line and tab characters with a single space
+      .replace(/ {2,}/g, " "); // Replace multiple consecutive spaces with a single space
+  };
+
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
-
-    console.log("Datos del formulario:", data);
-    console.log("Items del carrito:", cartItems);
 
     const orderPayload = {
       direccionEnvio: data.direccion,
@@ -258,9 +250,9 @@ const Page = () => {
       nombre: data.nombre,
       departamento: data.departamento,
       ciudad: data.ciudad,
-      items: cartItems.map((item) => ({
-        variacionId: item.variacion.id,
-        cantidad: item.cantidad,
+      items: selectedProducts.map((product) => ({
+        variacionId: product.variacionId,
+        cantidad: product.quantity,
       })),
     };
 
@@ -274,48 +266,36 @@ const Page = () => {
       return;
     }
 
-    // Clear the cart after order creation
-    await Promise.all(
-      cartItems.map(async (item) => {
-        await removeFromCart(item.id);
-      })
-    );
-    queryClient.invalidateQueries({ queryKey: ["cartItems"] }); // Refresh cart items
-
     const whatsappResponse = await sendOrderToWhatsapp({
-      nombre: data.nombre,
-      telefono: data.telefono,
-      direccion: data.direccion,
-      fecha: new Intl.DateTimeFormat("es-CO", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(newOrder.order?.createdAt),
-      barrio: data.nombreBarrio,
-      items: cartItems.map((item) => {
-        const attributes = item.variacion.atributos
-          .map(
-            (attr: any) =>
-              `${attr.valorAtributo.atributo.nombre}: ${attr.valorAtributo.valor}`
-          )
-          .join(", ");
-
-        return {
-          nombreProducto: `${item.variacion.producto.nombre} (${attributes})`,
-          cantidad: item.cantidad,
-          precio: item.cantidad * item.variacion.producto.precio,
-        };
-      }),
-      total: cartItems.reduce((total, item) => {
-        return (
+      nombre: sanitizeText(data.nombre),
+      telefono: sanitizeText(data.telefono),
+      direccion: sanitizeText(data.direccion),
+      fecha: sanitizeText(
+        new Intl.DateTimeFormat("es-CO", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(newOrder.order?.createdAt)
+      ),
+      barrio: sanitizeText(data.nombreBarrio),
+      items: selectedProducts.map((product) => ({
+        nombreProducto: sanitizeText(product.nombre),
+        cantidad: product.quantity,
+        precio:
+          product.quantity === 2 && product.priceDosificacion
+            ? product.priceDosificacion
+            : product.quantity * product.price,
+      })),
+      total: selectedProducts.reduce(
+        (total, product) =>
           total +
-          (item.cantidad === 2
-            ? item.variacion.producto.precioDosificacion ?? 0
-            : item.cantidad * item.variacion.producto.precio)
-        );
-      }, 0),
+          (product.quantity === 2 && product.priceDosificacion
+            ? product.priceDosificacion
+            : product.quantity * product.price),
+        0
+      ),
     });
 
     if (!whatsappResponse.success) {
@@ -332,7 +312,14 @@ const Page = () => {
     setCities([]);
   };
 
-  // Verificar si hay items en el carrito
+  const memoizedAttributes = useMemo(
+    () =>
+      selectedProducts.map((product) => ({
+        attributes: product.attributes,
+        variaciones: product.variaciones,
+      })),
+    [selectedProducts]
+  );
 
   return (
     <div className="min-h-screen py-10 px-4 bg-gray-50">
@@ -342,7 +329,6 @@ const Page = () => {
         </h1>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {/* Formulario de pago - 2/3 del ancho */}
           <div className="md:col-span-2">
             <Card className="shadow-lg">
               <CardHeader className="space-y-1  text-primary-foreground rounded-t-lg">
@@ -358,7 +344,6 @@ const Page = () => {
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}>
                   <CardContent className="space-y-6 pt-6">
-                    {/* Información Personal */}
                     <div className="space-y-4">
                       <h3 className="text-lg font-medium">
                         Información Personal
@@ -430,7 +415,6 @@ const Page = () => {
 
                     <Separator />
 
-                    {/* Dirección de Facturación */}
                     <div className="space-y-4">
                       <h3 className="text-lg font-medium">Dirección</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -537,14 +521,12 @@ const Page = () => {
                     </div>
 
                     <Separator />
-
-                    {/* Información de Pago */}
                   </CardContent>
 
                   <CardFooter className="flex justify-between border-t p-6">
                     <Button
                       type="submit"
-                      disabled={isSubmitting || cartItems.length === 0}
+                      disabled={isSubmitting || selectedProducts.length === 0}
                       className="min-w-[150px]"
                     >
                       {isSubmitting ? (
@@ -562,7 +544,6 @@ const Page = () => {
             </Card>
           </div>
 
-          {/* Resumen del carrito - 1/3 del ancho */}
           <div className="md:col-span-1">
             <Card className="shadow-lg">
               <CardHeader className="space-y-1 bg-muted rounded-t-lg">
@@ -571,20 +552,17 @@ const Page = () => {
                   Resumen de la Orden
                 </CardTitle>
                 <CardDescription>
-                  {totalItems} {totalItems === 1 ? "producto" : "productos"} en
-                  tu carrito
+                  {selectedProducts.length}{" "}
+                  {selectedProducts.length === 1 ? "producto" : "productos"} en
+                  tu orden
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-4">
-                {isLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                  </div>
-                ) : cartItems.length === 0 ? (
+                {selectedProducts.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
                     <ShoppingBag className="h-12 w-12 text-muted-foreground mb-4" />
                     <p className="text-muted-foreground">
-                      Tu carrito está vacío
+                      No hay productos seleccionados
                     </p>
                     <Button
                       variant="outline"
@@ -595,17 +573,85 @@ const Page = () => {
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-1">
-                    <div className="max-h-[400px] overflow-y-auto pr-2">
-                      {cartItems.map((item) => (
-                        <CartItem
-                          key={item.id}
-                          item={item}
-                          onQuantityChange={handleQuantityChange}
-                          onRemove={handleRemove}
-                        />
-                      ))}
-                    </div>
+                  <div className="space-y-4">
+                    {selectedProducts.map((product, index) => (
+                      <div
+                        key={index}
+                        className="flex flex-col gap-3 border-b pb-4"
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="text-sm font-medium">
+                              {product.nombre}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Cantidad: {product.quantity}
+                            </p>
+                          </div>
+                          <p className="text-sm font-bold">
+                            ${product.price.toLocaleString("es-CO")}
+                          </p>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium">
+                            Atributos seleccionados
+                          </p>
+                          {product.variaciones?.length > 0 &&
+                            product.variaciones[0].atributos &&
+                            Object.keys(
+                              product.variaciones[0].atributos.reduce(
+                                (acc, attr) => ({
+                                  ...acc,
+                                  [attr.valorAtributo.atributo.nombre]: true,
+                                }),
+                                {}
+                              )
+                            ).map((attribute) => {
+                              const availableOptions = getAvailableOptions(
+                                product,
+                                attribute,
+                                product.attributes
+                              );
+
+                              return (
+                                <div key={attribute} className="flex flex-col">
+                                  <label className="text-xs font-medium">
+                                    {attribute}
+                                  </label>
+                                  <div className="flex flex-wrap gap-2">
+                                    {availableOptions.map((option) => {
+                                      const isSelected =
+                                        product.attributes[attribute] ===
+                                        option;
+
+                                      return (
+                                        <button
+                                          key={option}
+                                          onClick={() =>
+                                            handleAttributeSelection(
+                                              product.productId,
+                                              attribute,
+                                              option
+                                            )
+                                          }
+                                          className={cn(
+                                            "px-3 py-1.5 rounded-md border transition-all",
+                                            isSelected
+                                              ? "bg-black text-white dark:bg-white dark:text-black border-transparent"
+                                              : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                                          )}
+                                        >
+                                          {option}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    ))}
 
                     <Separator className="my-4" />
 
@@ -614,16 +660,16 @@ const Page = () => {
                         <span>Subtotal</span>
                         <span>
                           $
-                          {cartItems
-                            .reduce((total, item) => {
-                              return (
-                                total +
-                                (item.cantidad === 2
-                                  ? item.variacion.producto
-                                      .precioDosificacion ?? 0
-                                  : item.cantidad *
-                                    item.variacion.producto.precio)
-                              );
+                          {selectedProducts
+                            .reduce((total, product) => {
+                              if (
+                                selectedProducts.length === 2 ||
+                                (selectedProducts.length === 1 &&
+                                  product.quantity === 2)
+                              ) {
+                                return product.priceDosificacion ?? total;
+                              }
+                              return total + product.quantity * product.price;
                             }, 0)
                             .toLocaleString("es-CO")}
                         </span>
@@ -635,16 +681,16 @@ const Page = () => {
                         <span>Total</span>
                         <span>
                           $
-                          {cartItems
-                            .reduce((total, item) => {
-                              return (
-                                total +
-                                (item.cantidad === 2
-                                  ? item.variacion.producto
-                                      .precioDosificacion ?? 0
-                                  : item.cantidad *
-                                    item.variacion.producto.precio)
-                              );
+                          {selectedProducts
+                            .reduce((total, product) => {
+                              if (
+                                selectedProducts.length === 2 ||
+                                (selectedProducts.length === 1 &&
+                                  product.quantity === 2)
+                              ) {
+                                return product.priceDosificacion ?? total;
+                              }
+                              return total + product.quantity * product.price;
                             }, 0)
                             .toLocaleString("es-CO")}
                         </span>

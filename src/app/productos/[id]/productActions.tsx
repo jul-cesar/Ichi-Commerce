@@ -1,6 +1,5 @@
 "use client";
 
-import { addToCart } from "@/app/productos/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -9,10 +8,19 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, ShoppingCart, Tag } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 
 type ClientProductActionsProps = {
   product: {
+    variaciones: {
+      id: string;
+      stock: number; // Include stock information
+      atributos: {
+        valorAtributo: {
+          atributo: { nombre: string };
+          valor: string;
+        };
+      }[];
+    }[];
     id: string;
     nombre: string;
     precio: number;
@@ -20,6 +28,26 @@ type ClientProductActionsProps = {
     precioDosificacion: number | null;
   };
   selectedAttributes: { [key: string]: string }; // Selected attributes from AtributesSelect
+};
+
+export type SelectedProduct = {
+  productId: string;
+  variacionId: string;
+  nombre: string; // Add product name
+  quantity: number;
+  attributes: { [key: string]: string };
+  price: number;
+  priceDosificacion: number | null;
+  variaciones: {
+    id: string;
+    stock: number;
+    atributos: {
+      valorAtributo: {
+        atributo: { nombre: string };
+        valor: string;
+      };
+    }[];
+  }[]; // Add variations property
 };
 
 export const ClientProductActions = ({
@@ -30,9 +58,89 @@ export const ClientProductActions = ({
   const [canAddToCart, setCanAddToCart] = useState(false);
   const [quantity, setQuantity] = useState(1); // State for quantity
   const [isSpecialOffer, setIsSpecialOffer] = useState(false); // State for special offer
+  const [secondAttributes, setSecondAttributes] = useState<{
+    [key: string]: string;
+  }>({});
+  const [availableAttributes, setAvailableAttributes] = useState<{
+    [key: string]: string[];
+  }>({});
+  const [allAttributes, setAllAttributes] = useState<{
+    [key: string]: string[];
+  }>({});
   const queryClient = useQueryClient();
   const [attributesNeeded, setAttributesNeeded] = useState(2);
   const router = useRouter();
+
+  // Populate attributes and options based on product variations
+  useEffect(() => {
+    const attributesFound: string[] = [];
+    const optionsByAttribute: { [key: string]: string[] } = {};
+
+    if (product.variaciones) {
+      product.variaciones.forEach((variacion) => {
+        if (variacion.stock > 0) {
+          variacion.atributos.forEach((atributo) => {
+            const attributeName = atributo.valorAtributo.atributo.nombre;
+            const attributeValue = atributo.valorAtributo.valor;
+
+            if (!attributesFound.includes(attributeName)) {
+              attributesFound.push(attributeName);
+            }
+
+            if (!optionsByAttribute[attributeName]) {
+              optionsByAttribute[attributeName] = [];
+            }
+
+            if (!optionsByAttribute[attributeName].includes(attributeValue)) {
+              optionsByAttribute[attributeName].push(attributeValue);
+            }
+          });
+        }
+      });
+    }
+
+    setAllAttributes(optionsByAttribute);
+    setAvailableAttributes(optionsByAttribute);
+  }, [product]);
+
+  // Update available options based on selected attributes
+  useEffect(() => {
+    const updatedOptions: { [key: string]: string[] } = {};
+
+    Object.keys(allAttributes).forEach((attribute) => {
+      const otherSelections = { ...secondAttributes };
+      delete otherSelections[attribute];
+
+      const validVariations = product.variaciones.filter((variacion) => {
+        return (
+          variacion.stock > 0 &&
+          Object.entries(otherSelections).every(([attrName, attrValue]) =>
+            variacion.atributos.some(
+              (attr) =>
+                attr.valorAtributo.atributo.nombre === attrName &&
+                attr.valorAtributo.valor === attrValue
+            )
+          )
+        );
+      });
+
+      const availableOptions: string[] = [];
+      validVariations.forEach((variacion) => {
+        variacion.atributos.forEach((atributo) => {
+          if (atributo.valorAtributo.atributo.nombre === attribute) {
+            const value = atributo.valorAtributo.valor;
+            if (!availableOptions.includes(value)) {
+              availableOptions.push(value);
+            }
+          }
+        });
+      });
+
+      updatedOptions[attribute] = availableOptions;
+    });
+
+    setAvailableAttributes(updatedOptions);
+  }, [secondAttributes, allAttributes, product]);
 
   // Validate that at least two attributes are selected
   useEffect(() => {
@@ -42,31 +150,87 @@ export const ClientProductActions = ({
     setAttributesNeeded(Math.max(0, 2 - selectedCount));
   }, [selectedAttributes]);
 
-  const handleAddToCart = async () => {
-    if (!canAddToCart) return; // Prevent adding to cart if validation fails
+  const handleProceedToOrder = () => {
+    const selectedProducts: SelectedProduct[] = [];
 
-    setLoading(true);
+    // Find the variation ID for the first product
+    const firstVariationId =
+      product.variaciones.find((variacion) =>
+        Object.entries(selectedAttributes).every(([key, value]) =>
+          variacion.atributos.some(
+            (attr) =>
+              attr.valorAtributo.atributo.nombre === key &&
+              attr.valorAtributo.valor === value
+          )
+        )
+      )?.id || "";
 
-    try {
-      const result = await addToCart({
-        productId: product.id,
-        quantity: isSpecialOffer ? 2 : quantity, // Use 2 if special offer is selected
-        attributes: selectedAttributes, // Pass selected attributes
-      });
+    // Add the first product
+    selectedProducts.push({
+      productId: product.id,
+      variacionId: firstVariationId,
+      nombre: product.nombre,
+      quantity: isSpecialOffer ? 1 : quantity, // Start with quantity 1 for special offer
+      attributes: selectedAttributes,
+      price: isSpecialOffer
+        ? product.precio // Use regular price for quantity 1
+        : product.precio, // Use regular price for non-special offer
+      priceDosificacion: product.precioDosificacion,
+      variaciones: product.variaciones, // Include variations
+    });
 
-      if (result?.success) {
-        toast.success("Producto agregado al carrito exitosamente.");
-        queryClient.invalidateQueries({ queryKey: ["cartItems"] }); // Refresh cart items
-        router.push("/order/nuevo"); // Redirect to order page
+    // Handle the second product for the special offer
+    if (isSpecialOffer && Object.keys(secondAttributes).length > 0) {
+      const secondVariationId =
+        product.variaciones.find((variacion) =>
+          Object.entries(secondAttributes).every(([key, value]) =>
+            variacion.atributos.some(
+              (attr) =>
+                attr.valorAtributo.atributo.nombre === key &&
+                attr.valorAtributo.valor === value
+            )
+          )
+        )?.id || "";
+
+      // Check if the second product matches the first product
+      const isSameVariation = firstVariationId === secondVariationId;
+
+      if (isSameVariation) {
+        // Update the quantity of the first product to 2
+        selectedProducts[0].quantity = 2;
+        selectedProducts[0].price =
+          product.precioDosificacion ?? product.precio * 2; // Use priceDosificacion for 2 items
       } else {
-        toast.error("Error al agregar el producto al carrito.");
+        // Check if the second variation already exists in the selectedProducts array
+        const existingProductIndex = selectedProducts.findIndex(
+          (product) => product.variacionId === secondVariationId
+        );
+
+        if (existingProductIndex !== -1) {
+          // If it exists, increment the quantity
+          selectedProducts[existingProductIndex].quantity += 1;
+        } else {
+          // Add the second product as a separate entry
+          selectedProducts.push({
+            productId: product.id,
+            variacionId: secondVariationId,
+            nombre: product.nombre,
+            quantity: 1,
+            attributes: secondAttributes,
+            price: product.precio,
+            priceDosificacion: product.precioDosificacion,
+            variaciones: product.variaciones, // Include variations
+          });
+        }
       }
-    } catch (error) {
-      console.error("Error al agregar al carrito:", error);
-      toast.error("Ocurrió un error al intentar agregar el producto.");
-    } finally {
-      setLoading(false);
     }
+
+    // Navigate to the order page with the selected products
+    router.push(
+      `/order/nuevo?products=${encodeURIComponent(
+        JSON.stringify(selectedProducts)
+      )}`
+    );
   };
 
   const handleQuantityChange = (newQuantity: number) => {
@@ -88,6 +252,13 @@ export const ClientProductActions = ({
     }
   };
 
+  const handleSecondAttributeChange = (attribute: string, value: string) => {
+    setSecondAttributes((prev) => ({
+      ...prev,
+      [attribute]: prev[attribute] === value ? "" : value,
+    }));
+  };
+
   // Calculate regular price based on quantity
   const regularPrice = product.precio * quantity;
   const regularPromoPrice = product.precioPromo * quantity;
@@ -102,8 +273,6 @@ export const ClientProductActions = ({
   const promoTotalPrice = isSpecialOffer
     ? specialOfferOriginalPrice
     : regularPromoPrice;
-
-  // Calculate savings for special offer
 
   return (
     <Card className="p-5 space-y-6 border-muted-foreground/20">
@@ -197,43 +366,48 @@ export const ClientProductActions = ({
           </div>
         </div>
 
-        {/* Quantity selector - only show if not using special offer */}
-        {/* {!isSpecialOffer && (
-          <div className="flex items-center justify-center mt-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => handleQuantityChange(quantity - 1)}
-              disabled={quantity <= 1 || loading}
-              className="h-10 w-10 rounded-full"
-            >
-              <MinusCircle
-                className={cn(
-                  "h-6 w-6",
-                  quantity <= 1
-                    ? "text-muted-foreground/40"
-                    : "text-muted-foreground"
-                )}
-              />
-              <span className="sr-only">Disminuir cantidad</span>
-            </Button>
+        {/* Secondary attributes selection for the second product */}
+        {isSpecialOffer && (
+          <div className="space-y-2">
+            <p className="text-sm font-medium">
+              Selecciona atributos para el segundo producto
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {Object.keys(allAttributes).map((attribute) => (
+                <div key={attribute} className="flex flex-col">
+                  <label className="text-xs font-medium">{attribute}</label>
+                  <div className="flex flex-wrap gap-2">
+                    {allAttributes[attribute].map((option) => {
+                      const isAvailable =
+                        availableAttributes[attribute]?.includes(option);
+                      const isSelected = secondAttributes[attribute] === option;
 
-            <div className="w-16 text-center">
-              <span className="text-xl font-semibold">{quantity}</span>
+                      return (
+                        <button
+                          key={option}
+                          onClick={() =>
+                            isAvailable &&
+                            handleSecondAttributeChange(attribute, option)
+                          }
+                          disabled={!isAvailable}
+                          className={cn(
+                            "px-3 py-1.5 rounded-md border transition-all",
+                            isSelected
+                              ? "bg-black text-white dark:bg-white dark:text-black border-transparent"
+                              : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700",
+                            !isAvailable && "opacity-30 cursor-not-allowed"
+                          )}
+                        >
+                          {option}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => handleQuantityChange(quantity + 1)}
-              disabled={loading}
-              className="h-10 w-10 rounded-full"
-            >
-              <PlusCircle className="h-6 w-6 text-primary" />
-              <span className="sr-only">Aumentar cantidad</span>
-            </Button>
           </div>
-        )} */}
+        )}
       </div>
 
       {/* Selected attributes feedback */}
@@ -266,14 +440,20 @@ export const ClientProductActions = ({
 
       {/* Add to cart button */}
       <Button
-        onClick={handleAddToCart}
-        disabled={loading || !canAddToCart}
+        onClick={handleProceedToOrder}
+        disabled={
+          loading ||
+          !canAddToCart ||
+          (isSpecialOffer &&
+            Object.keys(secondAttributes).length <
+              Object.keys(allAttributes).length)
+        }
         className="w-full h-12 text-base font-medium bg-green-500"
         size="lg"
       >
         <ShoppingCart className="mr-2 h-5 w-5 " />
         {loading
-          ? "Agregando..."
+          ? "Procesando..."
           : isSpecialOffer
           ? "¡Comprar 2 con descuento!"
           : "Pagar contraentrega"}

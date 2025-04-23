@@ -36,7 +36,7 @@ const AtributesSelect = ({
   }>({});
 
   useEffect(() => {
-    if (!product) return;
+    if (!product || !Array.isArray(product.variaciones)) return; // Ensure variaciones is an array
 
     const atributosEncontrados: string[] = [];
     const opcionesPorAtributo: { [key: string]: string[] } = {};

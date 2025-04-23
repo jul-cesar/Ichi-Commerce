@@ -10,14 +10,21 @@ export async function addToCart({
   quantity,
   userId,
   attributes = {},
+  secondAttributes = null, // Add secondAttributes for the second item
 }: {
   productId: string;
   quantity: number;
   userId?: string; // Make userId optional for anonymous users
   attributes?: Record<string, string>;
+  secondAttributes?: Record<string, string> | null;
 }) {
   try {
-    console.log("attributos", attributes);
+    console.log(
+      "Attributes:",
+      attributes,
+      "Second Attributes:",
+      secondAttributes
+    );
     const cookieStore = await cookies();
     let cartId = cookieStore.get("cartId")?.value;
 
@@ -72,9 +79,6 @@ export async function addToCart({
       });
     }
 
-    // Find the specific variation based on attributes
-    let variationId: string | null = null;
-
     const product = await prisma.producto.findUnique({
       where: { id: productId },
       include: {
@@ -102,9 +106,9 @@ export async function addToCart({
       throw new Error("El producto no tiene variaciones disponibles.");
     }
 
-    if (Object.keys(attributes).length > 0) {
+    const findVariationId = (attrs: Record<string, string>) => {
       const matchingVariation = product.variaciones.find((variation) =>
-        Object.entries(attributes).every(([attrName, attrValue]) =>
+        Object.entries(attrs).every(([attrName, attrValue]) =>
           variation.atributos.some(
             (attr) =>
               attr.valorAtributo.atributo.nombre === attrName &&
@@ -113,54 +117,41 @@ export async function addToCart({
         )
       );
 
-      if (matchingVariation) {
-        variationId = matchingVariation.id;
-      } else {
+      return matchingVariation ? matchingVariation.id : null;
+    };
+
+    const variationId = findVariationId(attributes);
+    if (!variationId) {
+      throw new Error(
+        "No se encontró una variación que coincida con los atributos proporcionados."
+      );
+    }
+
+    let secondVariationId = null;
+    if (secondAttributes) {
+      secondVariationId = findVariationId(secondAttributes);
+      if (!secondVariationId) {
         throw new Error(
-          "No se encontró una variación que coincida con los atributos proporcionados."
+          "No se encontró una variación que coincida con los atributos del segundo producto."
         );
       }
-    } else {
-      throw new Error(
-        "No se proporcionaron atributos para buscar una variación."
-      );
     }
 
-    // Validate that the variationId is valid
-    const variationExists = await prisma.variacionProducto.findUnique({
-      where: { id: variationId },
-    });
-    if (!variationExists) {
-      throw new Error(
-        "La variación de producto no existe en la base de datos."
-      );
-    }
+    // Check if the first and second items are the same
+    const isSameVariation = variationId === secondVariationId;
 
-    // Check if item already exists in cart
+    // Check if the first item already exists in the cart
     const existingItem = await prisma.cartItem.findFirst({
       where: {
         cartId: cart.id,
-        variacionId: variationId, // Ensure the check is based on the correct variation
+        variacionId: variationId,
       },
     });
 
     if (existingItem) {
-      const newQuantity = existingItem.cantidad + quantity;
+      const newQuantity = existingItem.cantidad + (isSameVariation ? 2 : 1);
 
       if (newQuantity > 2) {
-        return {
-          success: true,
-          error:
-            "No puedes agregar más de 2 unidades de este producto al carrito.",
-        };
-      }
-
-      await prisma.cartItem.update({
-        where: { id: existingItem.id },
-        data: { cantidad: newQuantity },
-      });
-    } else {
-      if (quantity > 2) {
         return {
           success: false,
           error:
@@ -168,14 +159,70 @@ export async function addToCart({
         };
       }
 
+      await prisma.cartItem.update({
+        where: { id: existingItem.id },
+        data: {
+          cantidad: newQuantity,
+          precioUnitario:
+            newQuantity === 2
+              ? product.precioDosificacion ?? product.precio
+              : product.precio,
+        },
+      });
+    } else {
       await prisma.cartItem.create({
         data: {
           cartId: cart.id,
           variacionId: variationId,
-          cantidad: quantity,
-          precioUnitario: 100, // Replace with the actual price of the variation
+          cantidad: isSameVariation ? 2 : 1,
+          precioUnitario:
+            isSameVariation && quantity === 2
+              ? product.precioDosificacion ?? product.precio
+              : product.precio,
         },
       });
+    }
+
+    // If the second item is different, add it as a separate cart item
+    if (!isSameVariation && secondVariationId) {
+      const secondExistingItem = await prisma.cartItem.findFirst({
+        where: {
+          cartId: cart.id,
+          variacionId: secondVariationId,
+        },
+      });
+
+      if (secondExistingItem) {
+        const newQuantity = secondExistingItem.cantidad + 1;
+
+        if (newQuantity > 2) {
+          return {
+            success: false,
+            error:
+              "No puedes agregar más de 2 unidades de este producto al carrito.",
+          };
+        }
+
+        await prisma.cartItem.update({
+          where: { id: secondExistingItem.id },
+          data: {
+            cantidad: newQuantity,
+            precioUnitario:
+              newQuantity === 2
+                ? product.precioDosificacion ?? product.precio
+                : product.precio,
+          },
+        });
+      } else {
+        await prisma.cartItem.create({
+          data: {
+            cartId: cart.id,
+            variacionId: secondVariationId,
+            cantidad: 1,
+            precioUnitario: product.precio,
+          },
+        });
+      }
     }
 
     revalidatePath("/");
