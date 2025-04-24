@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Check, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type AtributesSelectProps = {
@@ -151,7 +151,7 @@ const AtributesSelect = ({
       "cyan",
       "magenta",
       "beige",
-      "hueso",
+      "Hueso",
     ];
 
     return basicColors.includes(lowerColor);
@@ -174,15 +174,15 @@ const AtributesSelect = ({
       rosa: "pink",
       marron: "brown",
       gris: "gray",
-      beige: "#b1a27b",
-      hueso: "#dad1cc",
+      beige: "#bbab81", // Correct beige color
+      Hueso: "red", // Correct hueso color (light beige)
     };
 
     if (colorMap[color.toLowerCase()]) {
       return colorMap[color.toLowerCase()];
     }
 
-    return "linear-gradient(to right, #f6d365 0%, #fda085 100%)";
+    return "#c0b7b2";
   };
 
   return (
@@ -240,65 +240,25 @@ const AtributesSelect = ({
                   const estaSeleccionado =
                     selecciones[nombreAtributo] === valorOpcion;
 
-                  if (esColor) {
-                    return (
-                      <button
-                        key={valorOpcion}
-                        onClick={() =>
-                          estaDisponible &&
-                          handleSeleccion(nombreAtributo, valorOpcion)
-                        }
-                        disabled={!estaDisponible}
-                        className={cn(
-                          "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
-                          estaSeleccionado
-                            ? "border-black dark:border-white scale-110"
-                            : "border-transparent",
-                          !estaDisponible && "opacity-30 cursor-not-allowed"
-                        )}
-                        style={{
-                          background: getColorBackground(valorOpcion),
-                        }}
-                        title={valorOpcion}
-                      >
-                        {estaSeleccionado && (
-                          <Check
-                            className={cn(
-                              "h-5 w-5",
-                              [
-                                "white",
-                                "yellow",
-                                "blanco",
-                                "amarillo",
-                              ].includes(valorOpcion.toLowerCase())
-                                ? "text-black"
-                                : "text-white"
-                            )}
-                          />
-                        )}
-                      </button>
-                    );
-                  } else {
-                    return (
-                      <button
-                        key={valorOpcion}
-                        onClick={() =>
-                          estaDisponible &&
-                          handleSeleccion(nombreAtributo, valorOpcion)
-                        }
-                        disabled={!estaDisponible}
-                        className={cn(
-                          "px-3 py-1.5 rounded-md border transition-all",
-                          estaSeleccionado
-                            ? "bg-black text-white dark:bg-white dark:text-black border-transparent"
-                            : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700",
-                          !estaDisponible && "opacity-30 cursor-not-allowed"
-                        )}
-                      >
-                        {valorOpcion}
-                      </button>
-                    );
-                  }
+                  return (
+                    <button
+                      key={valorOpcion}
+                      onClick={() =>
+                        estaDisponible &&
+                        handleSeleccion(nombreAtributo, valorOpcion)
+                      }
+                      disabled={!estaDisponible}
+                      className={cn(
+                        "px-3 py-1.5 rounded-md border transition-all",
+                        estaSeleccionado
+                          ? "bg-black text-white dark:bg-white dark:text-black border-transparent"
+                          : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700",
+                        !estaDisponible && "opacity-30 cursor-not-allowed"
+                      )}
+                    >
+                      {valorOpcion}
+                    </button>
+                  );
                 })}
               </div>
             </div>
