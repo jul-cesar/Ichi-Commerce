@@ -1,5 +1,4 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Clock, Star, Truck, Users } from "lucide-react";
 import Link from "next/link";
@@ -210,12 +209,6 @@ export default async function ProductPage({
             </div>
 
             {/* Add to cart button */}
-            <Button
-              size="lg"
-              className="bg-red-600 hover:bg-red-700 text-white font-bold text-lg py-6"
-            >
-              COMPRAR AHORA
-            </Button>
 
             <div className="text-center text-sm text-muted-foreground mt-2">
               <Clock className="inline-block mr-1 h-4 w-4" />

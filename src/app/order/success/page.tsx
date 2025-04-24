@@ -57,14 +57,25 @@ export default async function OrderSuccessPage({
     minute: "2-digit",
   }).format(order.createdAt);
 
-  const totalNeto = order.items.reduce((total, item) => {
-    return (
-      total +
-      (item.cantidad === 2
-        ? item.variacion.producto.precioDosificacion ?? 0
-        : item.cantidad * item.variacion.producto.precio)
-    );
-  }, 0);
+  const totalQuantity = order.items.reduce(
+    (sum, item) => sum + item.cantidad,
+    0
+  );
+
+  const totalNeto =
+    totalQuantity === 2
+      ? order.items.find((item) => item.variacion.producto.precioDosificacion)
+          ?.variacion.producto.precioDosificacion ??
+        order.items.reduce(
+          (total, item) =>
+            total + item.cantidad * item.variacion.producto.precio,
+          0
+        )
+      : order.items.reduce(
+          (total, item) =>
+            total + item.cantidad * item.variacion.producto.precio,
+          0
+        );
 
   const subtotalNoPromo = order.items.reduce((total, item) => {
     return total + item.variacion.producto.precio * item.cantidad;

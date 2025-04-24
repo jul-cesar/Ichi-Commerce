@@ -261,26 +261,18 @@ export async function sendOrderToWhatsapp({
 }: {
   nombre: string;
   fecha: string | Date;
-  telefono:string
-  items: { nombreProducto: string; cantidad: number; precio: number }[];
+  telefono: string;
+  items: string[]; // Array of product details
   direccion: string;
   barrio: string;
-  total:number
+  total: number;
 }) {
-  // Format the product details into a string
-  const productosFormatted = items
-    .map(
-      (producto) =>
-        `- ${producto.nombreProducto} (x${producto.cantidad}): $${producto.precio.toLocaleString(
-          "es-CO"
-        )}`
-    )
-    .join("\n");
-    console.log(productosFormatted)
+  const firstProduct = items[0] || ""; // First product
+  const secondProduct = items[1] || ""; // Second product or empty string
 
   const payload = {
     messaging_product: "whatsapp",
-    to: "573042680811", // Número del proveedor
+    to: "573022629545", // Número del proveedor
     type: "template",
     template: {
       name: "neworder",
@@ -290,12 +282,13 @@ export async function sendOrderToWhatsapp({
           type: "body",
           parameters: [
             { type: "text", text: nombre },
-            {type: "text", text: telefono},
+            { type: "text", text: telefono },
             { type: "text", text: fecha },
-            { type: "text", text: productosFormatted },
+            { type: "text", text: firstProduct },
             { type: "text", text: direccion },
             { type: "text", text: barrio },
-            {type: "text", text: total.toLocaleString("es-CO")},
+            { type: "text", text: total.toLocaleString("es-CO") },
+            { type: "text", text: secondProduct || "--"}, // Add second product as the last parameter
           ],
         },
       ],

@@ -115,7 +115,7 @@ export const ClientProductActions = ({
 
     Object.keys(allAttributes).forEach((attribute) => {
       const otherSelections = { ...secondAttributes };
-      delete otherSelections[attribute];
+      delete otherSelections[attribute]; // Exclude the current attribute from the filter
 
       const validVariations = product.variaciones.filter((variacion) => {
         return (
@@ -255,10 +255,15 @@ export const ClientProductActions = ({
   };
 
   const handleSecondAttributeChange = (attribute: string, value: string) => {
-    setSecondAttributes((prev) => ({
-      ...prev,
-      [attribute]: prev[attribute] === value ? "" : value,
-    }));
+    setSecondAttributes((prev) => {
+      const updated = { ...prev };
+      if (updated[attribute] === value) {
+        delete updated[attribute]; // Deselect the attribute if it's already selected
+      } else {
+        updated[attribute] = value; // Select the new value
+      }
+      return updated;
+    });
   };
 
   // Calculate regular price based on quantity
