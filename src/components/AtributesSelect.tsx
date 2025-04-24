@@ -63,6 +63,11 @@ const AtributesSelect = ({
       }
     });
 
+    // Sort the attribute values alphabetically
+    Object.keys(opcionesPorAtributo).forEach((key) => {
+      opcionesPorAtributo[key].sort((a, b) => a.localeCompare(b));
+    });
+
     setAtributos(atributosEncontrados);
     setTodasLasOpciones(opcionesPorAtributo);
   }, [product]);

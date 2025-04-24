@@ -384,31 +384,34 @@ export const ClientProductActions = ({
                 <div key={attribute} className="flex flex-col">
                   <label className="text-xs font-medium">{attribute}</label>
                   <div className="flex flex-wrap gap-2">
-                    {allAttributes[attribute].map((option) => {
-                      const isAvailable =
-                        availableAttributes[attribute]?.includes(option);
-                      const isSelected = secondAttributes[attribute] === option;
+                    {allAttributes[attribute]
+                      .slice() // Create a copy of the array
+                      .sort((a, b) => a.localeCompare(b)) // Sort alphabetically
+                      .map((option) => {
+                        const isAvailable =
+                          availableAttributes[attribute]?.includes(option);
+                        const isSelected = secondAttributes[attribute] === option;
 
-                      return (
-                        <button
-                          key={option}
-                          onClick={() =>
-                            isAvailable &&
-                            handleSecondAttributeChange(attribute, option)
-                          }
-                          disabled={!isAvailable}
-                          className={cn(
-                            "px-3 py-1.5 rounded-md border transition-all",
-                            isSelected
-                              ? "bg-black text-white dark:bg-white dark:text-black border-transparent"
-                              : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700",
-                            !isAvailable && "opacity-30 cursor-not-allowed"
-                          )}
-                        >
-                          {option}
-                        </button>
-                      );
-                    })}
+                        return (
+                          <button
+                            key={option}
+                            onClick={() =>
+                              isAvailable &&
+                              handleSecondAttributeChange(attribute, option)
+                            }
+                            disabled={!isAvailable}
+                            className={cn(
+                              "px-3 py-1.5 rounded-md border transition-all",
+                              isSelected
+                                ? "bg-black text-white dark:bg-white dark:text-black border-transparent"
+                                : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700",
+                              !isAvailable && "opacity-30 cursor-not-allowed"
+                            )}
+                          >
+                            {option}
+                          </button>
+                        );
+                      })}
                   </div>
                 </div>
               ))}

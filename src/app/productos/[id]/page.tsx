@@ -22,6 +22,9 @@ export default async function ProductPage({
         include: {
           imagenes: true,
           atributos: {
+            orderBy: {
+              opcionAtributoId: "asc", // Order attributes by their ID in ascending order
+            },
             include: {
               valorAtributo: {
                 include: {
