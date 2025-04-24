@@ -390,7 +390,8 @@ export const ClientProductActions = ({
                       .map((option) => {
                         const isAvailable =
                           availableAttributes[attribute]?.includes(option);
-                        const isSelected = secondAttributes[attribute] === option;
+                        const isSelected =
+                          secondAttributes[attribute] === option;
 
                         return (
                           <button
