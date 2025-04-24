@@ -17,7 +17,6 @@ import { mergeCartOnLogin } from "@/app/productos/actions";
 import { authClient } from "@/lib/client";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-import CartSheet from "./CartSheet";
 import MobileMenu from "./MobileMenu";
 import SearchDialog from "./SearchDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -41,6 +40,7 @@ const hideNavbarRoutes = [
   "/admin/productos",
   "/admin/atributos",
   "/admin/categorias",
+  "admin/[id]/edit",
   "/order/nuevo",
   "/order/success",
 ];
@@ -96,6 +96,15 @@ export default function Navbar() {
         </nav>
 
         <div className="flex flex-1 items-center justify-end space-x-4">
+          {session?.user.role === "admin" && (
+            <Link
+              href="/admin"
+              className="flex h-12 items-center rounded-md px-4 text-sm font-medium transition-colors hover:bg-accent"
+            >
+              <ShieldUser className="mr-3 size-5" /> Admin
+            </Link>
+          )}
+
           <SearchDialog />
 
           {!session?.user.id ? (
@@ -151,7 +160,7 @@ export default function Navbar() {
             </DropdownMenu>
           )}
 
-          <CartSheet />
+          {/* <CartSheet /> */}
         </div>
       </div>
     </header>

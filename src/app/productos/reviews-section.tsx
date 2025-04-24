@@ -15,7 +15,7 @@ const reviews = [
     content:
       "¡Increíble producto! Lo recibí en menos de 24 horas y la calidad es excelente. Muy cómodos y el diseño es exactamente como en las fotos. Definitivamente compraré más.",
     likes: 24,
-    images: ["/placeholder.svg?height=80&width=80"],
+    images: [],
   },
   {
     id: 2,
@@ -36,13 +36,9 @@ const reviews = [
     date: "hace 2 semanas",
     rating: 4,
     verified: true,
-    content:
-      "Muy buenos, cómodos y bonitos. La entrega fue rápida y sin problemas. Le doy 4 estrellas porque el color es ligeramente diferente al de la foto, pero aún así me encantan.",
+    content: "Muy buenos, cómodos y bonitos..",
     likes: 7,
-    images: [
-      "/placeholder.svg?height=80&width=80",
-      "/placeholder.svg?height=80&width=80",
-    ],
+    images: [],
   },
 ];
 

@@ -150,6 +150,8 @@ const AtributesSelect = ({
       "grey",
       "cyan",
       "magenta",
+      "beige",
+      "hueso",
     ];
 
     return basicColors.includes(lowerColor);
@@ -172,6 +174,8 @@ const AtributesSelect = ({
       rosa: "pink",
       marron: "brown",
       gris: "gray",
+      beige: "#b1a27b",
+      hueso: "#dad1cc",
     };
 
     if (colorMap[color.toLowerCase()]) {

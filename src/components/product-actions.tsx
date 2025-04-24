@@ -24,7 +24,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { deleteProduct, getCategories } from "./admin/actions";
-import { EditProductModal } from "./admin/EditProductModal";
 
 type ProductActionsProps = {
   product: any; // Using any for simplicity, but you should define a proper type
@@ -74,15 +73,14 @@ export function ProductActions({ product }: ProductActionsProps) {
           <DropdownMenuLabel>Acciones</DropdownMenuLabel>
           <DropdownMenuSeparator />
 
-          <EditProductModal
-            categories={categories}
-            product={product}
-            trigger={
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                <Edit /> Editar producto
-              </DropdownMenuItem>
-            }
-          />
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault();
+              router.push(`/admin/${product.id}/edit`);
+            }}
+          >
+            <Edit /> Editar producto
+          </DropdownMenuItem>
 
           <DropdownMenuSeparator />
 

@@ -379,7 +379,7 @@ export const ClientProductActions = ({
             <p className="text-sm font-medium">
               Selecciona atributos para el segundo producto
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col flex-wrap gap-2">
               {Object.keys(allAttributes).map((attribute) => (
                 <div key={attribute} className="flex flex-col">
                   <label className="text-xs font-medium">{attribute}</label>

@@ -165,17 +165,7 @@ export const productInfoSchema = z
   .refine((data) => Number(data.precioPromo) > Number(data.precio), {
     path: ["precioPromo"],
     message: "El precio promocional debe ser mayor que el precio normal",
-  })
-  .refine(
-    (data) =>
-      Number(data.precio) * 2 < Number(data.precioDosificacion) &&
-      Number(data.precioDosificacion) > 0,
-    {
-      path: ["precioDosificacion"],
-      message:
-        "El precio de la dosoficacion debe ser menor al precio normal x 2",
-    }
-  );
+  });
 
 export const productDetailsSchema = z.object({
   categoryId: z.string().min(1, "Por favor, selecciona una categoría"),

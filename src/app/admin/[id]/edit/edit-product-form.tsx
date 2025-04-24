@@ -2,16 +2,15 @@
 
 import type React from "react";
 
+import { editarProducto } from "@/components/admin/actions";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -23,58 +22,32 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { Prisma } from "@prisma/client";
-import { Edit } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { editarProducto } from "./actions";
+import { useState } from "react";
+import { toast } from "sonner";
 
-type EditProductModalProps = {
-  product: {
-    id: string;
-    nombre: string;
-    descripcion: string;
-    precio: number;
-    categoriaId: string;
-    precioPromo: number;
-    precioDosificacion: number;
-    activo: boolean;
-  };
-  categories: Prisma.CategoriaGetPayload<{}>[] | undefined;
-  trigger?: React.ReactNode;
+type EditProductFormProps = {
+  product: Prisma.ProductoGetPayload<{
+    include: {
+      categoria: true;
+    };
+  }>;
+  categories: Prisma.CategoriaGetPayload<{}>[];
 };
 
-export function EditProductModal({
-  product,
-  trigger,
-  categories,
-}: EditProductModalProps) {
+export function EditProductForm({ product, categories }: EditProductFormProps) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     nombre: product.nombre,
     descripcion: product.descripcion,
     precio: product.precio,
     categoriaId: product.categoriaId,
-    activo: product.activo,
+
     precioPromo: product.precioPromo,
     precioDosificacion: product.precioDosificacion,
   });
-
-  // Reset form data when product changes or modal opens
-  useEffect(() => {
-    if (open) {
-      setFormData({
-        nombre: product.nombre,
-        descripcion: product.descripcion,
-        precio: product.precio,
-        categoriaId: product.categoriaId,
-        activo: product.activo,
-        precioPromo: product.precioPromo,
-        precioDosificacion: product.precioDosificacion,
-      });
-    }
-  }, [product, open]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -112,44 +85,26 @@ export function EditProductModal({
         precioPromo: Number(formData.precioPromo),
       });
 
-      // Close modal and refresh page
-      setOpen(false);
+      toast("Producto actualizado");
+
+      // Redirect back to products page
+      router.push("/productos");
       router.refresh();
     } catch (error) {
       console.error("Error:", error);
-      alert("Error al guardar los cambios. Inténtalo de nuevo.");
+      toast("Error al guardar los cambios. Inténtalo de nuevo.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(newOpen) => !isSubmitting && setOpen(newOpen)}
-    >
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button variant="outline" size="sm">
-            <Edit className="mr-2 h-4 w-4" />
-            Editar producto
-          </Button>
-        )}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[900px]">
-        <DialogHeader>
-          <DialogTitle>Editar producto</DialogTitle>
-          <DialogDescription>
-            Actualiza la información básica del producto. Haz clic en guardar
-            cuando termines.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form
-          id="edit-product-form"
-          onSubmit={handleSubmit}
-          className="space-y-4 py-4"
-        >
+    <Card className="max-w-3xl mx-auto">
+      <CardHeader>
+        <CardTitle>Información del producto</CardTitle>
+      </CardHeader>
+      <form onSubmit={handleSubmit}>
+        <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="nombre">Nombre</Label>
             <Input
@@ -158,7 +113,6 @@ export function EditProductModal({
               value={formData.nombre}
               onChange={handleChange}
               required
-              className="z-50"
             />
           </div>
 
@@ -167,14 +121,14 @@ export function EditProductModal({
             <Textarea
               id="descripcion"
               name="descripcion"
-              value={formData.descripcion}
+              value={formData.descripcion ?? ""}
               onChange={handleChange}
               rows={3}
-              className="min-h-[80px] z-50"
+              className="min-h-[100px]"
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="precio">Precio</Label>
               <Input
@@ -186,11 +140,10 @@ export function EditProductModal({
                 value={formData.precio}
                 onChange={handleNumberChange}
                 required
-                className="z-50"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="precioPromo">Precio promo</Label>
+              <Label htmlFor="precioPromo">Precio promocional</Label>
               <Input
                 id="precioPromo"
                 name="precioPromo"
@@ -200,12 +153,11 @@ export function EditProductModal({
                 value={formData.precioPromo}
                 onChange={handleNumberChange}
                 required
-                className="z-50"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="precioDosificacion">Precio dosificación</Label>
               <Input
@@ -214,10 +166,9 @@ export function EditProductModal({
                 type="number"
                 min="0"
                 step="1"
-                value={formData.precioDosificacion}
+                value={formData.precioDosificacion ?? ""}
                 onChange={handleNumberChange}
                 required
-                className="z-50"
               />
             </div>
 
@@ -227,14 +178,11 @@ export function EditProductModal({
                 value={formData.categoriaId}
                 onValueChange={handleSelectChange}
               >
-                <SelectTrigger id="categoria" className="z-50">
-                  <SelectValue placeholder="Selecciona una categoría">
-                    {categories?.find((c) => c.id === formData.categoriaId)
-                      ?.nombre || "Selecciona una categoría"}
-                  </SelectValue>
+                <SelectTrigger id="categoria">
+                  <SelectValue placeholder="Selecciona una categoría" />
                 </SelectTrigger>
-                <SelectContent position="popper" className="z-[100]">
-                  {categories?.map((category) => (
+                <SelectContent>
+                  {categories.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       {category.nombre}
                     </SelectItem>
@@ -243,21 +191,16 @@ export function EditProductModal({
               </Select>
             </div>
           </div>
-
-          <DialogFooter className="pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => !isSubmitting && setOpen(false)}
-            >
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Guardando..." : "Guardar cambios"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <Button type="button" variant="outline" onClick={() => router.back()}>
+            Cancelar
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Guardando..." : "Guardar cambios"}
+          </Button>
+        </CardFooter>
+      </form>
+    </Card>
   );
 }

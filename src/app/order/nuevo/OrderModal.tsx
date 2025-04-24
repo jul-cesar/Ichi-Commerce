@@ -653,7 +653,7 @@ const CheckoutModal = ({
                               >
                                 <FormControl>
                                   <SelectTrigger className="border-gray-300 focus:border-green-500 focus:ring-green-500">
-                                    <SelectValue placeholder="Seleccionar Departamento" />
+                                    <SelectValue placeholder="Selec Departamento" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -687,7 +687,7 @@ const CheckoutModal = ({
                               >
                                 <FormControl>
                                   <SelectTrigger className="border-gray-300 focus:border-green-500 focus:ring-green-500">
-                                    <SelectValue placeholder="Seleccionar Ciudad" />
+                                    <SelectValue placeholder="Selec Ciudad" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
