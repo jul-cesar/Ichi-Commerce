@@ -132,9 +132,6 @@ export default function ReviewsSection() {
       </div>
 
       {/* More reviews button */}
-      <button className="w-full border rounded-md py-2 text-sm font-medium hover:bg-gray-50">
-        Ver todas las 196 reseñas
-      </button>
     </div>
   );
 }
