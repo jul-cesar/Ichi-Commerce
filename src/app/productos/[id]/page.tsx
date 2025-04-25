@@ -89,8 +89,8 @@ export default async function ProductPage({
     <main className="flex min-h-screen flex-col">
       {/* Limited time offer banner */}
       <div className="bg-red-600 text-white py-2 px-4 text-center font-bold tracking-wide animate-pulse">
-        ¡OFERTA POR TIEMPO LIMITADO! • SOLO QUEDAN {stock} UNIDADES • ENVÍO
-        GRATIS POR 2 DÍAS •
+        ¡OFERTA POR TIEMPO LIMITADO! • SOLO QUEDAN 5 UNIDADES • ENVÍO GRATIS POR
+        2 DÍAS •
       </div>
 
       <div className="container p-6">
@@ -155,7 +155,7 @@ export default async function ProductPage({
 
               <div className="flex items-center gap-2 mt-2">
                 <p className="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md">
-                  {stock > 0 ? `¡Solo quedan ${stock} unidades!` : "Sin stock"}
+                  {stock > 0 ? `¡Solo quedan 5 unidades!` : "Sin stock"}
                 </p>
               </div>
 
