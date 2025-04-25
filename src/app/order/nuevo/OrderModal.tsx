@@ -323,6 +323,99 @@ const CheckoutModal = ({
     setShowConfirmationModal(false);
   };
 
+  const handleSecondProductSelection = (attribute: string, value: string) => {
+    setAvailableAttributes((prev) => ({
+      ...prev,
+      [attribute]: [value], // Ensure the value is wrapped in an array
+    }));
+  };
+
+  const addSecondProductToOrder = () => {
+    if (selectedProducts.length === 1) {
+      const firstProduct = selectedProducts[0];
+
+      // Find a matching variation based on selected attributes
+      const matchingVariation = firstProduct.variaciones.find((variacion) =>
+        Object.entries(availableAttributes).every(([key, value]) =>
+          variacion.atributos.some(
+            (atributo) =>
+              atributo.valorAtributo.atributo.nombre === key &&
+              atributo.valorAtributo.valor === value[0] // Access the first value in the array
+          )
+        )
+      );
+
+      if (!matchingVariation) {
+        toast.error(
+          "No se encontró una variación con los atributos seleccionados."
+        );
+        return;
+      }
+
+      const secondProduct: SelectedProduct = {
+        ...firstProduct,
+        quantity: 1,
+        variacionId: matchingVariation.id, // Use the matching variation ID
+        attributes: Object.fromEntries(
+          Object.entries(availableAttributes).map(([key, value]) => [
+            key,
+            value[0],
+          ])
+        ), // Convert arrays to strings for attributes
+      };
+
+      setSelectedProducts((prev) => [...prev, secondProduct]);
+    }
+  };
+
+  // Render attribute options for the second product
+  const renderAttributeOptions = () => {
+    if (selectedProducts.length === 0) return null;
+
+    const firstProduct = selectedProducts[0];
+
+    const allAttributesMap: { [key: string]: string[] } = {};
+    firstProduct.variaciones.forEach((variacion) => {
+      variacion.atributos.forEach((atributo) => {
+        const attributeName = atributo.valorAtributo.atributo.nombre;
+        const attributeValue = atributo.valorAtributo.valor;
+
+        if (!allAttributesMap[attributeName]) {
+          allAttributesMap[attributeName] = [];
+        }
+
+        if (!allAttributesMap[attributeName].includes(attributeValue)) {
+          allAttributesMap[attributeName].push(attributeValue);
+        }
+      });
+    });
+
+    return Object.keys(allAttributesMap).map((attribute) => (
+      <div key={attribute} className="flex flex-col">
+        <label className="text-xs font-medium">{attribute}</label>
+        <div className="flex flex-wrap gap-2">
+          {allAttributesMap[attribute]
+            .slice()
+            .sort((a, b) => a.localeCompare(b))
+            .map((option) => (
+              <button
+                key={option}
+                onClick={() => handleSecondProductSelection(attribute, option)}
+                className={cn(
+                  "px-3 py-1.5 rounded-md border transition-all",
+                  availableAttributes[attribute]?.[0] === option // Compare the first value in the array
+                    ? "bg-black text-white dark:bg-white dark:text-black border-transparent"
+                    : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                )}
+              >
+                {option}
+              </button>
+            ))}
+        </div>
+      </div>
+    ));
+  };
+
   return (
     <>
       <Dialog
@@ -452,53 +545,48 @@ const CheckoutModal = ({
                 ) : (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 gap-3">
-                      {selectedProducts.map((product, index) => {
-                        const price = product.price;
-
-                        return (
-                          <div
-                            key={index}
-                            className={cn(
-                              "flex items-center border rounded-md p-3 hover:bg-gray-50 transition-all",
-                              isAnimating &&
-                                "animate-in fade-in-50 duration-300"
-                            )}
-                            style={{ animationDelay: `${index * 100}ms` }}
-                          >
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-1">
-                                <p className="text-sm font-medium text-gray-800 truncate">
-                                  {product.nombre}
-                                </p>
-                                <p className="text-sm font-bold text-green-700 ml-2">
-                                  ${product.price?.toLocaleString("es-CO")}
-                                </p>
-                              </div>
-                              <p className="text-xs text-muted-foreground mb-2">
-                                Cantidad: {product.quantity}
+                      {selectedProducts.map((product, index) => (
+                        <div
+                          key={index}
+                          className={cn(
+                            "flex items-center border rounded-md p-3 hover:bg-gray-50 transition-all",
+                            isAnimating && "animate-in fade-in-50 duration-300"
+                          )}
+                          style={{ animationDelay: `${index * 100}ms` }}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <p className="text-sm font-medium text-gray-800 truncate">
+                                {product.nombre}
                               </p>
+                              <p className="text-sm font-bold text-green-700 ml-2">
+                                ${product.price?.toLocaleString("es-CO")}
+                              </p>
+                            </div>
+                            <p className="text-xs text-muted-foreground mb-2">
+                              Cantidad: {product.quantity}
+                            </p>
 
-                              <div className="flex flex-wrap gap-1">
-                                {Object.entries(product.attributes).map(
-                                  ([key, value]) => (
-                                    <span
-                                      key={key}
-                                      className="inline-flex text-xs bg-gray-100 px-2 py-1 rounded"
-                                    >
-                                      <span className="font-medium text-gray-600">
-                                        {key}:
-                                      </span>
-                                      <span className="ml-1 text-gray-800">
-                                        {value}
-                                      </span>
+                            <div className="flex flex-wrap gap-1">
+                              {Object.entries(product.attributes).map(
+                                ([key, value]) => (
+                                  <span
+                                    key={key}
+                                    className="inline-flex text-xs bg-gray-100 px-2 py-1 rounded"
+                                  >
+                                    <span className="font-medium text-gray-600">
+                                      {key}:
                                     </span>
-                                  )
-                                )}
-                              </div>
+                                    <span className="ml-1 text-gray-800">
+                                      {value}
+                                    </span>
+                                  </span>
+                                )
+                              )}
                             </div>
                           </div>
-                        );
-                      })}
+                        </div>
+                      ))}
                     </div>
 
                     <Separator className="my-4" />
@@ -533,6 +621,28 @@ const CheckoutModal = ({
                 )}
               </CardContent>
             </Card>
+
+            {/* Promo Section: Llévate 2 pares */}
+            {selectedProducts.length === 1 && (
+              <div className="bg-red-50 p-4 rounded-md border border-red-200">
+                <h3 className="text-lg font-bold text-red-600 mb-2">
+                  ¡Llévate 2 pares!
+                </h3>
+                <p className="text-sm text-red-700 mb-4">
+                  Aprovecha esta promoción especial y elige otro producto para
+                  activar el descuento.
+                </p>
+                <div className="grid grid-cols-1 gap-2">
+                  {renderAttributeOptions()}
+                </div>
+                <Button
+                  onClick={addSecondProductToOrder}
+                  className="mt-4 bg-green-600 hover:bg-green-700 text-white"
+                >
+                  Agregar segundo producto
+                </Button>
+              </div>
+            )}
 
             {/* Información Personal */}
             <Card className="shadow-lg">
