@@ -4,6 +4,8 @@ import { ArrowLeft, Clock, Star, Truck, Users } from "lucide-react";
 import Link from "next/link";
 import { prisma } from "../../../../db/instance";
 
+import { sendFacebookEvent } from "@/fb/action";
+import { headers } from "next/headers";
 import DeliveryTimeline from "../delivery-timeline";
 import ImageSlider from "../image-slider";
 import ReviewsSection from "../reviews-section";
@@ -84,6 +86,24 @@ export default async function ProductPage({
     { name: "Carlos", verified: false },
     { name: "Ana", verified: true },
   ];
+
+  const headersList = await headers();
+
+  // Obtener User Agent
+  const userAgent = headersList.get("user-agent") || "";
+
+  // Obtener IP desde x-forwarded-for (puede venir con varias IPs separadas por coma)
+  const xForwardedFor = headersList.get("x-forwarded-for") || "";
+  const ip = xForwardedFor.split(",")[0].trim() || "";
+
+  // Aquí llamas a tu server action con esos datos
+
+  await sendFacebookEvent(
+    "PageView",
+    "http://localhost:3000/productos/3643f436-0d77-49b2-9299-7aca20ab120a",
+    ip,
+    userAgent
+  );
 
   return (
     <main className="flex min-h-screen flex-col">

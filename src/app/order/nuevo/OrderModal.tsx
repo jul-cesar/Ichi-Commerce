@@ -234,6 +234,33 @@ const CheckoutModal = ({
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
 
+    const userAgent = navigator.userAgent;
+
+    // Obtener IP vía API externa
+    const ipRes = await fetch("https://api.ipify.org?format=json");
+    const ipData = await ipRes.json();
+    const ip = ipData.ip;
+
+    const res = await fetch("/api/facebook-events", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        eventName: "Purchase",
+        url: window.location.href,
+        ip,
+        userAgent,
+        value: totalPrice, // Ajusta según el nombre del campo de precio
+        currency: "COP", // Ajusta según tu moneda
+      }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || "Error en la API de Facebook");
+    }
+
     try {
       const orderPayload = {
         direccionEnvio: data.direccion,
