@@ -274,7 +274,7 @@ export async function sendOrderToWhatsapp({
 
   const payload = {
     messaging_product: "whatsapp",
-    to: "573042680811", // Número del proveedor
+    to: "573022629545", // Número del proveedor
     type: "template",
     template: {
       name: "neworder",
