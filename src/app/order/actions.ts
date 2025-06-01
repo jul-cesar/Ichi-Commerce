@@ -258,6 +258,7 @@ export async function sendOrderToWhatsapp({
   direccion,
   total,
   barrio,
+  ciudadDepartamento,
 }: {
   nombre: string;
   fecha: string | Date;
@@ -266,13 +267,14 @@ export async function sendOrderToWhatsapp({
   direccion: string;
   barrio: string;
   total: number;
+  ciudadDepartamento: string;
 }) {
   const firstProduct = items[0] || ""; // First product
   const secondProduct = items[1] || ""; // Second product or empty string
 
   const payload = {
     messaging_product: "whatsapp",
-    to: "573022629545", // Número del proveedor
+    to: "573042680811", // Número del proveedor
     type: "template",
     template: {
       name: "neworder",
@@ -288,7 +290,8 @@ export async function sendOrderToWhatsapp({
             { type: "text", text: direccion },
             { type: "text", text: barrio },
             { type: "text", text: total.toLocaleString("es-CO") },
-            { type: "text", text: secondProduct || "--"}, // Add second product as the last parameter
+            { type: "text", text: secondProduct || "--"}, 
+            {type: "text", text: ciudadDepartamento },
           ],
         },
       ],

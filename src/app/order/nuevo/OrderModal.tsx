@@ -299,7 +299,7 @@ const CheckoutModal = ({
       });
 
       const whatsappResponse = await sendOrderToWhatsapp({
-        nombre: sanitizeText(data.nombre),
+        nombre: `${sanitizeText(data.nombre)} ${sanitizeText(data.apellidos)}`,
         telefono: sanitizeText(data.telefono),
         direccion: sanitizeText(data.direccion),
         fecha: sanitizeText(
@@ -314,6 +314,9 @@ const CheckoutModal = ({
         barrio: sanitizeText(data.nombreBarrio),
         items: whatsappItems,
         total: totalPrice,
+        ciudadDepartamento: `${sanitizeText(data.ciudad)}, ${sanitizeText(
+          data.departamento
+        )}`,
       });
 
       if (!whatsappResponse.success) {

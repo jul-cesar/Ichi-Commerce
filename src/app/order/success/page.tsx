@@ -228,7 +228,7 @@ export default async function OrderSuccessPage({
 
         <div className="flex flex-col gap-4 sm:flex-row">
           <Button asChild className="flex-1">
-            <Link href="/productos">
+            <Link href="/productos/3643f436-0d77-49b2-9299-7aca20ab120a">
               <ShoppingBag className="mr-2 h-4 w-4" />
               Seguir comprando
             </Link>
