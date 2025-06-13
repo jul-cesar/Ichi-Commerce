@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 
 interface ImageSliderProps {
   images: string[];
@@ -32,7 +32,7 @@ export default function ImageSlider({ images }: ImageSliderProps) {
     <div className="relative w-full">
       {/* Main image */}
       <div className="aspect-square overflow-hidden rounded-lg bg-muted relative">
-        <Image
+        <img
           src={images[currentIndex] || "/placeholder.svg"}
           alt="Product image"
           width={600}
