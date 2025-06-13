@@ -2,7 +2,6 @@
 
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import Image from "next/image";
 import { useState } from "react";
 
 interface ImageSliderProps {
@@ -71,7 +70,7 @@ export default function ImageSlider({ images }: ImageSliderProps) {
                 : "border-transparent"
             )}
           >
-            <Image
+            <img
               src={images[slideIndex] || "/placeholder.svg"}
               alt={`Thumbnail ${slideIndex + 1}`}
               width={64}

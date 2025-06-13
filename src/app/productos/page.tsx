@@ -1,5 +1,4 @@
 import ProductCard from "@/components/ProductCard";
-import Image from "next/image";
 import { prisma } from "../../../db/instance";
 
 export const dynamic = "force-dynamic"; // Enable dynamic rendering for this page
@@ -25,12 +24,10 @@ export default async function ProductsPage({
     <main className="flex min-h-screen flex-col">
       {/* Banner Section */}
       <section className="relative h-[200px] md:h-[300px] overflow-hidden">
-        <Image
+        <img
           src="/bannerProducts.jpg"
           alt="Colección nueva temporada"
-          fill
           className="object-cover"
-          priority
         />
         <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
           <div className="text-center text-white space-y-2">
