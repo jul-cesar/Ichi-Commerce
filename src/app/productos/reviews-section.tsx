@@ -113,8 +113,12 @@ export default function ReviewsSection({
 }: {
   productName: string;
 }) {
+  console.log("Product Name:", productName);
+  // Determine which reviews to show based on the product name
   const reviews =
-    productName === "SANDALIAS ROMA" ? sandalsReviews : reviewsGenerales;
+    productName.trim().toLowerCase() === "sandalias roma"
+      ? sandalsReviews
+      : reviewsGenerales;
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
