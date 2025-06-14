@@ -3,8 +3,74 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Star, ThumbsUp } from "lucide-react";
 
-// Fake review data
-const reviews = [
+// ...existing code...
+
+const sandalsReviews = [
+  {
+    id: 1,
+    name: "Sofía Méndez",
+    avatar: "/placeholder.svg?height=40&width=40",
+    date: "hace 3 días",
+    rating: 5,
+    verified: true,
+    content:
+      "¡Estas sandalias son perfectas! Súper cómodas desde el primer día, no me han causado ampollas y el tacón es ideal para usarlas todo el día. El color es exactamente como en la foto.",
+    likes: 32,
+    images: ["/sandals-review1.jpg"],
+  },
+  {
+    id: 2,
+    name: "Mariana Torres",
+    avatar: "/placeholder.svg?height=40&width=40",
+    date: "hace 1 semana",
+    rating: 5,
+    verified: true,
+    content:
+      "Las sandalias son hermosas, la calidad del cuero es excelente y son muy versátiles, me van con todo mi guardarropa. Además el envío fue rápido y llegaron muy bien empacadas.",
+    likes: 27,
+    images: ["/sandals-review2.jpg", "/sandals-review3.jpg"],
+  },
+  {
+    id: 3,
+    name: "Elena Fuentes",
+    avatar: "/placeholder.svg?height=40&width=40",
+    date: "hace 2 semanas",
+    rating: 4,
+    verified: true,
+    content:
+      "Sandalias muy bonitas y cómodas. El diseño es precioso y la calidad excelente.",
+    likes: 15,
+    images: [],
+  },
+  {
+    id: 4,
+    name: "Lucía Domínguez",
+    avatar: "/placeholder.svg?height=40&width=40",
+    date: "hace 3 semanas",
+    rating: 5,
+    verified: true,
+    content:
+      "¡Me encantan estas sandalias! Son elegantes pero a la vez muy cómodas. Perfectas para eventos formales o para salir de noche. Las recomiendo totalmente, son una buena inversión.",
+    likes: 41,
+    images: ["/sandals-review4.jpg"],
+  },
+  {
+    id: 5,
+    name: "Carolina Vega",
+    avatar: "/placeholder.svg?height=40&width=40",
+    date: "hace 1 mes",
+    rating: 5,
+    verified: true,
+    content:
+      "Estas son mis terceras sandalias de esta marca y como siempre, la calidad es espectacular. Son ligeras, cómodas y el acabado es impecable. Además, el sistema de ajuste hace que se adapten perfectamente al pie.",
+    likes: 29,
+    images: [],
+  },
+];
+
+// ...existing code...
+
+const reviewsGenerales = [
   {
     id: 1,
     name: "Laura Martínez",
@@ -13,7 +79,7 @@ const reviews = [
     rating: 5,
     verified: true,
     content:
-      "¡Increíble producto! Lo recibí en menos de 24 horas y la calidad es excelente. Muy cómodos y el diseño es exactamente como en las fotos. Definitivamente compraré más.",
+      "¡Increíble producto! la calidad es excelente. Muy cómodos y el diseño es exactamente como en las fotos. Definitivamente compraré más.",
     likes: 24,
     images: [],
   },
@@ -42,7 +108,13 @@ const reviews = [
   },
 ];
 
-export default function ReviewsSection() {
+export default function ReviewsSection({
+  productName,
+}: {
+  productName: string;
+}) {
+  const reviews =
+    productName === "SANDALIAS ROMA" ? sandalsReviews : reviewsGenerales;
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

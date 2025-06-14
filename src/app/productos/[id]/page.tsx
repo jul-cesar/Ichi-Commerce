@@ -283,7 +283,7 @@ export default async function ProductPage({
 
             {/* Reviews section */}
             <div className="mt-8">
-              <ReviewsSection />
+              <ReviewsSection productName={product.nombre} />
             </div>
           </div>
         </div>
