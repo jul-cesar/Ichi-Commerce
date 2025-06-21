@@ -7,9 +7,10 @@ export async function sendFacebookEvent(
   userAgent?: string,
   customData?: { value?: number; currency?: string }
 ) {
-  const pixelId = '1004413738502227';
+  const pixelId = process.env.PIXEL_ID;
+  if (!pixelId) throw new Error("PIXEL_ID no está configurado");
   const accessToken = process.env.FB_TOKEN;
-  if (!accessToken) throw new Error('FB_ACCESS_TOKEN no está configurado');
+  if (!accessToken) throw new Error("FB_ACCESS_TOKEN no está configurado");
 
   const eventPayload: any = {
     event_name: eventName,
@@ -30,16 +31,18 @@ export async function sendFacebookEvent(
     access_token: accessToken,
   };
 
-  const res = await fetch(`https://graph.facebook.com/v17.0/${pixelId}/events`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(eventData),
-  });
-
-  if (!res.ok) {
-    const error = await res.json();
-    throw new Error(`Error Facebook API: ${JSON.stringify(error)}`);
+  try {
+    const res = await fetch(
+      `https://graph.facebook.com/v17.0/${pixelId}/events`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(eventData),
+      }
+    );
+    return await res.json();
+  } catch (error: any) {
+    console.error("Error al enviar el evento a Facebook:", error);
+    throw new Error(`Error al enviar el evento: ${error.message}`);
   }
-
-  return await res.json();
 }
