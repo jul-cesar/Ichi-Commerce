@@ -259,7 +259,8 @@ const CheckoutModal = ({
       const errorData = await res.json();
       throw new Error(errorData.error || "Error en la API de Facebook");
     }
-
+    const facebookResponse = await res.json();
+    console.log("Facebook event response:", facebookResponse);
     try {
       const orderPayload = {
         direccionEnvio: data.direccion,

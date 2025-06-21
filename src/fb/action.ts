@@ -33,13 +33,16 @@ export async function sendFacebookEventNike(
 
   try {
     const res = await fetch(
-      `https://graph.facebook.com/v17.0/${pixelId}/events`,
+      `https://graph.facebook.com/v23.0/${pixelId}/events`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(eventData),
       }
     );
+  
+    console.log("Evento enviado a Facebook:", eventName );
+
     return await res.json();
   } catch (error: any) {
     console.error("Error al enviar el evento a Facebook:", error);
@@ -80,13 +83,16 @@ export async function sendFacebookEvent(
 
   try {
     const res = await fetch(
-      `https://graph.facebook.com/v17.0/${pixelId}/events`,
+      `https://graph.facebook.com/v23.0/${pixelId}/events`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(eventData),
       }
     );
+
+    console.log("Evento enviado a Facebook:", eventName);
+
     return await res.json();
   } catch (error: any) {
     console.error("Error al enviar el evento a Facebook:", error);

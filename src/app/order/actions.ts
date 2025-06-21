@@ -305,7 +305,7 @@ export async function sendOrderToWhatsapp({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.FB_TOKEN || ""}`,
+          Authorization: `Bearer ${process.env.FB_TOKEN_WHATSAPP || ""}`,
         },
         body: JSON.stringify(payload),
       }
