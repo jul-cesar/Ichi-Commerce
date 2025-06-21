@@ -4,7 +4,7 @@ import { ArrowLeft, Clock, Star, Truck, Users } from "lucide-react";
 import Link from "next/link";
 import { prisma } from "../../../../db/instance";
 
-import { sendFacebookEvent } from "@/fb/action";
+import { sendFacebookEvent, sendFacebookEventNike } from "@/fb/action";
 import { headers } from "next/headers";
 import DeliveryTimeline from "../delivery-timeline";
 import ImageSlider from "../image-slider";
@@ -64,23 +64,19 @@ export default async function ProductPage({
 
   const stock = await obtenerStockTotalproduct(product?.id || "");
 
-  // Fake product images for the slider
   const productImages = [
     product?.imagenPrincipal || "/placeholder.svg",
     ...product.variaciones.flatMap(
       (variacion) => variacion.imagenes.map((img) => img.url) || []
-    ), // Include images from variations
+    ),
   ];
 
-  // Calculate discount percentage
   const discountPercentage = Math.round(
     ((product.precioPromo - product.precio) / product.precioPromo) * 100
   );
 
-  // Fake purchase count
   const purchaseCount = 187;
 
-  // Recent buyers (fake data)
   const recentBuyers = [
     { name: "María", verified: true },
     { name: "Carlos", verified: false },
@@ -89,25 +85,29 @@ export default async function ProductPage({
 
   const headersList = await headers();
 
-  // Obtener User Agent
   const userAgent = headersList.get("user-agent") || "";
 
-  // Obtener IP desde x-forwarded-for (puede venir con varias IPs separadas por coma)
   const xForwardedFor = headersList.get("x-forwarded-for") || "";
   const ip = xForwardedFor.split(",")[0].trim() || "";
 
-  // Aquí llamas a tu server action con esos datos
-
-  await sendFacebookEvent(
+  await sendFacebookEventNike(
     "PageView",
-    "http://localhost:3000/productos/3643f436-0d77-49b2-9299-7aca20ab120a",
+    "https://www.chgroup.store/productos/aab267e9-da06-4c04-9405-866f7c06a3e9",
     ip,
     userAgent
   );
 
+  if (product.id === "aab267e9-da06-4c04-9405-866f7c06a3e9") {
+    await sendFacebookEvent(
+      "PageView",
+      "https://www.chgroup.store/productos/3643f436-0d77-49b2-9299-7aca20ab120a",
+      ip,
+      userAgent
+    );
+  }
+
   return (
     <main className="flex min-h-screen flex-col">
-      {/* Limited time offer banner */}
       <div className="bg-red-600 text-white py-2 px-4 text-center font-bold tracking-wide animate-pulse">
         ¡OFERTA POR TIEMPO LIMITADO! • SOLO QUEDAN 5 UNIDADES • ENVÍO GRATIS POR
         2 DÍAS •

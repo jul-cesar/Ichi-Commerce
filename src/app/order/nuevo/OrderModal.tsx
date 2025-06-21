@@ -236,7 +236,6 @@ const CheckoutModal = ({
 
     const userAgent = navigator.userAgent;
 
-    // Obtener IP vía API externa
     const ipRes = await fetch("https://api.ipify.org?format=json");
     const ipData = await ipRes.json();
     const ip = ipData.ip;
@@ -251,8 +250,8 @@ const CheckoutModal = ({
         url: window.location.href,
         ip,
         userAgent,
-        value: totalPrice, // Ajusta según el nombre del campo de precio
-        currency: "COP", // Ajusta según tu moneda
+        value: totalPrice,
+        currency: "COP",
       }),
     });
 
