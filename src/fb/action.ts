@@ -8,7 +8,7 @@ export async function sendFacebookEvent(
   customData?: { value?: number; currency?: string }
 ) {
   const pixelId = '1004413738502227';
-  const accessToken = process.env.FB_TOKEN_API;
+  const accessToken = process.env.FB_TOKEN;
   if (!accessToken) throw new Error('FB_ACCESS_TOKEN no está configurado');
 
   const eventPayload: any = {

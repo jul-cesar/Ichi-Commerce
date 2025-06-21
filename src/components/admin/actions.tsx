@@ -200,6 +200,7 @@ export const createVariation = async (data: {
     valueId: string;
   }[];
   stock: number;
+  images: string[];
 }) => {
   try {
     const variacionExistente = await prisma.variacionProducto.findFirst({
@@ -228,6 +229,11 @@ export const createVariation = async (data: {
       data: {
         productoId: data.productoId,
         stock: data.stock,
+        imagenes: {
+          create: data.images.map((image) => ({
+            url: image,
+          })),
+        },
       },
     });
 
