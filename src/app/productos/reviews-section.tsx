@@ -16,7 +16,7 @@ const sandalsReviews = [
     content:
       "¡Estas sandalias son perfectas! Súper cómodas desde el primer día, no me han causado ampollas y el tacón es ideal para usarlas todo el día. El color es exactamente como en la foto.",
     likes: 32,
-    images: ["/sandals-review1.jpg"],
+ 
   },
   {
     id: 2,
@@ -28,7 +28,7 @@ const sandalsReviews = [
     content:
       "Las sandalias son hermosas, la calidad del cuero es excelente y son muy versátiles, me van con todo mi guardarropa. Además el envío fue rápido y llegaron muy bien empacadas.",
     likes: 27,
-    images: ["/sandals-review2.jpg", "/sandals-review3.jpg"],
+
   },
   {
     id: 3,
@@ -52,7 +52,7 @@ const sandalsReviews = [
     content:
       "¡Me encantan estas sandalias! Son elegantes pero a la vez muy cómodas. Perfectas para eventos formales o para salir de noche. Las recomiendo totalmente, son una buena inversión.",
     likes: 41,
-    images: ["/sandals-review4.jpg"],
+
   },
   {
     id: 5,

@@ -7,6 +7,7 @@ export async function POST(req: Request) {
     const { eventName, url, ip, userAgent, value, currency } = body;
 
     if (url.includes("aab267e9-da06-4c04-9405-866f7c06a3e9")) {
+      console.log("Enviando evento a Facebook para Sandalias");
       const response = await sendFacebookEventNike(
         eventName,
         url,
@@ -22,6 +23,7 @@ export async function POST(req: Request) {
       value,
       currency,
     });
+    console.log("Enviando evento a Facebook para Nike");
 
     return NextResponse.json(response);
   } catch (error: any) {
