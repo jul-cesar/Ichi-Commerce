@@ -16,7 +16,7 @@ const sandalsReviews = [
     content:
       "¡Estas sandalias son perfectas! Súper cómodas desde el primer día, no me han causado ampollas y el tacón es ideal para usarlas todo el día. El color es exactamente como en la foto.",
     likes: 32,
- 
+    images: [],
   },
   {
     id: 2,
@@ -28,7 +28,7 @@ const sandalsReviews = [
     content:
       "Las sandalias son hermosas, la calidad del cuero es excelente y son muy versátiles, me van con todo mi guardarropa. Además el envío fue rápido y llegaron muy bien empacadas.",
     likes: 27,
-
+    images: [],
   },
   {
     id: 3,
@@ -52,7 +52,7 @@ const sandalsReviews = [
     content:
       "¡Me encantan estas sandalias! Son elegantes pero a la vez muy cómodas. Perfectas para eventos formales o para salir de noche. Las recomiendo totalmente, son una buena inversión.",
     likes: 41,
-
+    images: [],
   },
   {
     id: 5,
@@ -177,23 +177,6 @@ export default function ReviewsSection({
             </div>
 
             <p className="text-sm">{review.content}</p>
-
-            {review.images.length > 0 && (
-              <div className="flex gap-2 mt-2">
-                {review.images.map((img, index) => (
-                  <div
-                    key={index}
-                    className="h-20 w-20 rounded-md overflow-hidden"
-                  >
-                    <img
-                      src={img || "/placeholder.svg"}
-                      alt={`Review image ${index + 1}`}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
 
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <button className="flex items-center gap-1 hover:text-gray-900">
