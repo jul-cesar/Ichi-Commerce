@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Dices, Home, Package } from "lucide-react";
+import { Box, Coins, Dices, Home, Package } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -30,6 +30,11 @@ const sidebarItems = [
     title: "Categorías",
     href: "/admin/categorias",
     icon: Box,
+  },
+  {
+    title: "Ordenes",
+    href: "/admin/ordenes",
+    icon: Coins,
   },
 ];
 

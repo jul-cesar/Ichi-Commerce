@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { prisma } from "../../../../db/instance";
 
+export const dynamic = "force-dynamic";
+
 const page = async () => {
   const orders = await prisma.order.findMany({
     include: {
@@ -102,6 +104,7 @@ const page = async () => {
         hour: "2-digit",
         minute: "2-digit",
         hour12: true,
+        timeZone: "America/Bogota",
       }
     );
 
