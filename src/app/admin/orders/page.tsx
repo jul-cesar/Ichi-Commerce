@@ -1,4 +1,4 @@
-"use server";
+export const dynamic = "force-dynamic";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,8 +14,6 @@ import {
   Users,
 } from "lucide-react";
 import { prisma } from "../../../../db/instance";
-
-export const dynamic = "force-dynamic";
 
 const page = async () => {
   const orders = await prisma.order.findMany({
