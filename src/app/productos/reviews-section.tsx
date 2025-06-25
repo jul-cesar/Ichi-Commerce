@@ -26,7 +26,7 @@ const sandalsReviews = [
     rating: 5,
     verified: true,
     content:
-      "Las sandalias son hermosas, la calidad del cuero es excelente y son muy versátiles, me van con todo mi guardarropa. Además el envío fue rápido y llegaron muy bien empacadas.",
+      "Las sandalias son hermosas, la calidad es excelente y son muy versátiles, me van con todo mi guardarropa. Además el envío fue rápido y llegaron muy bien empacadas.",
     likes: 27,
     images: [],
   },
