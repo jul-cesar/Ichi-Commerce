@@ -33,7 +33,7 @@ const sidebarItems = [
   },
   {
     title: "Ordenes",
-    href: "/admin/ordenes",
+    href: "/admin/orders",
     icon: Coins,
   },
 ];

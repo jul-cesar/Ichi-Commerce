@@ -40,6 +40,7 @@ const hideNavbarRoutes = [
   "/admin/productos",
   "/admin/atributos",
   "/admin/categorias",
+  "/admin/orders",
   "admin/[id]/edit",
   "/order/nuevo",
   "/order/success",
