@@ -3,7 +3,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "../../db/instance";
  
 export const auth = betterAuth({
-    trustedOrigins: ["https://www.chgroup.store/", "http://chgroup.store", "https://chgroup.store/productos"], // Add your trusted origins here
+    trustedOrigins: ["https://www.chgroup.store/", "http://chgroup.store", "https://chgroup.store/"], // Add your trusted origins here
     baseURL: process.env.NODE_ENV === "production" 
         ? "https://chgroup.store" 
         : "http://localhost:3000",

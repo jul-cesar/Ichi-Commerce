@@ -259,6 +259,7 @@ const CheckoutModal = ({
       const errorData = await res.json();
       throw new Error(errorData.error || "Error en la API de Facebook");
     }
+
     const facebookResponse = await res.json();
     console.log("Facebook event response:", facebookResponse);
     try {
@@ -297,6 +298,46 @@ const CheckoutModal = ({
           } - $${product.price?.toLocaleString("es-CO")}`
         );
       });
+
+      const emailRes = await fetch("/api/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nombre: `${sanitizeText(data.nombre)} ${sanitizeText(data.apellidos)}`,
+          telefono: sanitizeText(data.telefono),
+          direccion: sanitizeText(data.direccion),
+          fecha: sanitizeText(
+            new Intl.DateTimeFormat("es-CO", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            }).format(newOrder.order?.createdAt)
+          ),
+          barrio: sanitizeText(data.nombreBarrio),
+          items: whatsappItems,
+          total: totalPrice,
+          ciudadDepartamento: `${sanitizeText(data.ciudad)}, ${sanitizeText(
+            data.departamento
+          )}`,
+        }),
+      });
+
+      console.log("Respuesta del email:", emailRes.status, emailRes.statusText);
+
+      if (!emailRes.ok) {
+        const errorData = await emailRes.json();
+        console.error("Error al enviar email:", errorData);
+        throw new Error(
+          `Error al enviar el correo: ${errorData.error || emailRes.statusText}`
+        );
+      }
+
+      const emailData = await emailRes.json();
+      console.log("Email enviado exitosamente:", emailData);
 
       const whatsappResponse = await sendOrderToWhatsapp({
         nombre: `${sanitizeText(data.nombre)} ${sanitizeText(data.apellidos)}`,
