@@ -4,7 +4,11 @@ import { ArrowLeft, Clock, Star, Truck, Users } from "lucide-react";
 import Link from "next/link";
 import { prisma } from "../../../../db/instance";
 
-import { sendFacebookEvent, sendFacebookEventNike } from "@/fb/action";
+import {
+  sendFacebookEvent,
+  sendFacebookEventAdidas,
+  sendFacebookEventNike,
+} from "@/fb/action";
 import { headers } from "next/headers";
 import DeliveryTimeline from "../delivery-timeline";
 import ImageSlider from "../image-slider";
@@ -96,6 +100,15 @@ export default async function ProductPage({
     ip,
     userAgent
   );
+
+  if (product && product.id === "adc458fe-ac01-49be-b004-e646dd2177ec") {
+    await sendFacebookEventAdidas(
+      "PageView",
+      "https://www.chgroup.store/productos/adc458fe-ac01-49be-b004-e646dd2177ec",
+      ip,
+      userAgent
+    );
+  }
 
   if (product.id === "aab267e9-da06-4c04-9405-866f7c06a3e9") {
     await sendFacebookEvent(
