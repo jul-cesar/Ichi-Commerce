@@ -3,7 +3,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "../../db/instance";
  
 export const auth = betterAuth({
-    trustedOrigins: ["https://www.chgroup.store/", "http://chgroup.store", "https://chgroup.store/"], // Add your trusted origins here
+    trustedOrigins: ["https://www.chgroup.store/", "https://chgroup.store/"],
     baseURL: process.env.NODE_ENV === "production" 
         ? "https://chgroup.store" 
         : "http://localhost:3000",
@@ -16,7 +16,7 @@ export const auth = betterAuth({
     }, 
 
     database: prismaAdapter(prisma, {
-        provider: "sqlite", // or "mysql", "postgresql", ...etc
+        provider: "sqlite", 
     }),
     
     user: {

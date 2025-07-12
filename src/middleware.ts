@@ -1,15 +1,21 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { auth } from "./lib/auth";
+
 
 
 export async function middleware(req: NextRequest) {
-  const token = await auth.api.getSession(req);
+    const apiSessionUrl = `${req.nextUrl.origin}/api/session`;
+   const res = await fetch(apiSessionUrl, {
+    headers: { cookie: req.headers.get("cookie") || "" },
+  });
+    const session = await res.json(); 
   const url = req.nextUrl;
+
+
 
   if (url.pathname.startsWith("/admin")) {
    
-    if (!token || token.user.role !== "admin") {
+    if (!session || session.user.role !== "admin") {
       return NextResponse.redirect(new URL("/", req.url));
     }
   }
@@ -18,5 +24,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"], // Apply middleware to /admin and all subpaths
+  matcher: ["/admin/:path*"],
 };
