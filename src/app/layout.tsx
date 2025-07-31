@@ -32,7 +32,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* Pixel de Facebook */}
         <Script
           id="facebook-pixel"
           strategy="afterInteractive"
@@ -46,6 +45,7 @@ export default function RootLayout({
               t.src=v;s=b.getElementsByTagName(e)[0];
               s.parentNode.insertBefore(t,s)}(window, document,'script',
               'https://connect.facebook.net/en_US/fbevents.js');
+              
               fbq('init', '1297697631699993');
               fbq('init', '1252332409762588');
               fbq('init', '1004413738502227');
@@ -53,6 +53,14 @@ export default function RootLayout({
             `,
           }}
         />
+        <noscript>
+          <img
+            height="1"
+            width="1"
+            style={{ display: "none" }}
+            src="https://www.facebook.com/tr?id=1297697631699993&ev=PageView&noscript=1"
+          />
+        </noscript>
         <noscript>
           <img
             height="1"
@@ -66,18 +74,7 @@ export default function RootLayout({
             height="1"
             width="1"
             style={{ display: "none" }}
-            src="https://www.facebook.com/tr?id=1297697631699993&ev=PageView&noscript=1"
-            alt="facebook-pixel"
-          />
-        </noscript>
-        <noscript>
-          <img
-            height="1"
-            width="1"
-            style={{ display: "none" }}
-            src="https://www.facebook.com/tr?id=1004413738502227
-&ev=PageView&noscript=1"
-            alt="facebook-pixel"
+            src="https://www.facebook.com/tr?id=1004413738502227&ev=PageView&noscript=1"
           />
         </noscript>
         <ReactQueryProvider>

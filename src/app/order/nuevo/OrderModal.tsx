@@ -231,37 +231,11 @@ const CheckoutModal = ({
 
   const totalPrice = calculateTotalPrice(selectedProducts);
 
+  // ...existing code...
+
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
 
-    const userAgent = navigator.userAgent;
-
-    const ipRes = await fetch("https://api.ipify.org?format=json");
-    const ipData = await ipRes.json();
-    const ip = ipData.ip;
-
-    const res = await fetch("/api/facebook-events", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        eventName: "Purchase",
-        url: window.location.href,
-        ip,
-        userAgent,
-        value: totalPrice,
-        currency: "COP",
-      }),
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.error || "Error en la API de Facebook");
-    }
-
-    const facebookResponse = await res.json();
-    console.log("Facebook event response:", facebookResponse);
     try {
       const orderPayload = {
         direccionEnvio: data.direccion,
@@ -286,6 +260,43 @@ const CheckoutModal = ({
         return;
       }
 
+      // ✅ ENVIAR EVENTO DE FACEBOOK DESPUÉS DE CREAR LA ORDEN EXITOSAMENTE
+      try {
+        const userAgent = navigator.userAgent;
+        const ipRes = await fetch("https://api.ipify.org?format=json");
+        const ipData = await ipRes.json();
+        const ip = ipData.ip;
+
+        const facebookRes = await fetch("/api/facebook-events", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            eventName: "Purchase",
+            url: window.location.href,
+            ip,
+            userAgent,
+            value: totalPrice,
+            currency: "COP",
+            sendToAll: true, // ✅ Enviar a todos los píxeles
+          }),
+        });
+
+        if (facebookRes.ok) {
+          const facebookResponse = await facebookRes.json();
+          console.log("Facebook event response:", facebookResponse);
+        } else {
+          console.error(
+            "Error enviando evento a Facebook:",
+            await facebookRes.text()
+          );
+        }
+      } catch (facebookError) {
+        console.error("Error enviando evento de Facebook:", facebookError);
+        // No detener el flujo por errores de Facebook
+      }
+
       // Preparar detalles de productos para WhatsApp
       const whatsappItems = selectedProducts.map((product) => {
         const price = product.price;
@@ -299,6 +310,7 @@ const CheckoutModal = ({
         );
       });
 
+      // Enviar email
       const emailRes = await fetch("/api/send", {
         method: "POST",
         headers: {
@@ -339,6 +351,7 @@ const CheckoutModal = ({
       const emailData = await emailRes.json();
       console.log("Email enviado exitosamente:", emailData);
 
+      // Enviar a WhatsApp
       const whatsappResponse = await sendOrderToWhatsapp({
         nombre: `${sanitizeText(data.nombre)} ${sanitizeText(data.apellidos)}`,
         telefono: sanitizeText(data.telefono),

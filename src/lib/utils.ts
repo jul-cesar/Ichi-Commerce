@@ -12,5 +12,4 @@ export async function getClientIP() {
   return data.ip;
 }
 
-// Uso
-getClientIP().then(ip => console.log('Mi IP es', ip));
+

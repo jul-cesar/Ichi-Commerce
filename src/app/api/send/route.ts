@@ -20,15 +20,15 @@ export async function POST(Request: Request) {
       return Response.json({ error: 'API key de Resend no configurada' }, { status: 500 });
     }
 
-    console.log('Enviando email con datos:', {
-      nombre: order.nombre,
-      telefono: order.telefono,
-      direccion: order.direccion,
-      barrio: order.barrio,
-      total: order.total,
-      ciudadDepartamento: order.ciudadDepartamento,
-      items: order.items
-    });
+    // console.log('Enviando email con datos:', {
+    //   nombre: order.nombre,
+    //   telefono: order.telefono,
+    //   direccion: order.direccion,
+    //   barrio: order.barrio,
+    //   total: order.total,
+    //   ciudadDepartamento: order.ciudadDepartamento,
+    //   items: order.items
+    // });
 
     // Crear el HTML del email manualmente
     const emailHTML = `

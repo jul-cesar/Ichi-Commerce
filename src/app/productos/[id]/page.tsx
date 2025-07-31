@@ -94,29 +94,27 @@ export default async function ProductPage({
   const xForwardedFor = headersList.get("x-forwarded-for") || "";
   const ip = xForwardedFor.split(",")[0].trim() || "";
 
-  await sendFacebookEventNike(
-    "PageView",
-    "https://www.chgroup.store/productos/aab267e9-da06-4c04-9405-866f7c06a3e9",
-    ip,
-    userAgent
-  );
+  const pixelConfig = {
+    "adc458fe-ac01-49be-b004-e646dd2177ec": "adidas", // Adidas
+    "aab267e9-da06-4c04-9405-866f7c06a3e9": "nike", // Nike/Sandalias
+  } as const;
 
-  if (product && product.id === "adc458fe-ac01-49be-b004-e646dd2177ec") {
-    await sendFacebookEventAdidas(
-      "PageView",
-      "https://www.chgroup.store/productos/adc458fe-ac01-49be-b004-e646dd2177ec",
-      ip,
-      userAgent
-    );
-  }
+  // Enviar evento de PageView
+  const productUrl = `https://www.chgroup.store/productos/${product.id}`;
 
-  if (product.id === "aab267e9-da06-4c04-9405-866f7c06a3e9") {
-    await sendFacebookEvent(
-      "PageView",
-      "https://www.chgroup.store/productos/3643f436-0d77-49b2-9299-7aca20ab120a",
-      ip,
-      userAgent
-    );
+  try {
+    const pixelType = pixelConfig[product.id as keyof typeof pixelConfig];
+
+    if (pixelType === "adidas") {
+      await sendFacebookEventAdidas("PageView", productUrl, ip, userAgent);
+    } else if (pixelType === "nike") {
+      await sendFacebookEventNike("PageView", productUrl, ip, userAgent);
+    } else {
+      // Producto genérico - usar píxel por defecto
+      await sendFacebookEvent("PageView", productUrl, ip, userAgent);
+    }
+  } catch (error) {
+    console.error("Error enviando evento de PageView:", error);
   }
 
   return (
