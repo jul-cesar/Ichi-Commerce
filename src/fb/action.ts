@@ -147,7 +147,7 @@ export async function sendPurchaseEvent(
         break;
       case "nike":
         result = await sendFacebookEventToPixel(
-          "1004413738502227",
+          "1297697631699993",
           "Purchase",
           eventUrl,
           ip,
@@ -156,7 +156,7 @@ export async function sendPurchaseEvent(
         );
         break;
       default:
-        const pixelId = process.env.PIXEL_ID;
+        const pixelId = "1004413738502227"
         if (!pixelId) throw new Error("PIXEL_ID no está configurado");
         result = await sendFacebookEventToPixel(
           pixelId,
