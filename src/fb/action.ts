@@ -10,9 +10,10 @@ interface CustomData {
 }
 
 interface EventPayload {
+  action_source: "website" | "app" | "other";
   event_name: string;
   event_time: number;
-  event_source_url: string;
+  
   user_data: {
     client_ip_address?: string;
     client_user_agent?: string;
@@ -33,9 +34,10 @@ async function sendFacebookEventToPixel(
   if (!accessToken) throw new Error("FB_ACCESS_TOKEN no está configurado");
 
   const eventPayload: EventPayload = {
+    action_source: "website",
     event_name: eventName,
     event_time: Math.floor(Date.now() / 1000),
-    event_source_url: url,
+   
     user_data: {},
   };
 
