@@ -279,7 +279,6 @@ const CheckoutModal = ({
             userAgent,
             value: totalPrice,
             currency: "COP",
-            sendToAll: true, // ✅ Enviar a todos los píxeles
           }),
         });
 
