@@ -52,6 +52,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { sendPurchaseEvent } from "@/fb/action";
 import { authClient } from "@/lib/client";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
@@ -266,30 +267,23 @@ const CheckoutModal = ({
         const ipRes = await fetch("https://api.ipify.org?format=json");
         const ipData = await ipRes.json();
         const ip = ipData.ip;
+        const productId = selectedProducts[0]?.productId;
 
-        const facebookRes = await fetch("/api/facebook-events", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            eventName: "Purchase",
-            url: window.location.href,
-            ip,
-            userAgent,
-            value: totalPrice,
-            currency: "COP",
-          }),
-        });
+        // Usar la nueva función específica para compras
+        const facebookResult = await sendPurchaseEvent(
+          totalPrice,
+          "COP",
+          ip,
+          userAgent,
+          productId
+        );
 
-        if (facebookRes.ok) {
-          const facebookResponse = await facebookRes.json();
-          console.log("Facebook event response:", facebookResponse);
-        } else {
-          console.error(
-            "Error enviando evento a Facebook:",
-            await facebookRes.text()
+        if (facebookResult.success) {
+          console.log(
+            `✅ Evento de compra enviado a ${facebookResult.pixelUsed} exitosamente`
           );
+        } else {
+          console.error("❌ Error enviando eventos de compra:", facebookResult);
         }
       } catch (facebookError) {
         console.error("Error enviando evento de Facebook:", facebookError);
