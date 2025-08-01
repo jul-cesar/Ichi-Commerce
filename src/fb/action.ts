@@ -56,7 +56,7 @@ async function sendFacebookEventToPixel(
 
   console.log(
     `Enviando evento ${eventName} al píxel ${pixelId}:`,
-    JSON.stringify(eventData, null, 2)
+  
   );
 
   try {

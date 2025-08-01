@@ -32,7 +32,7 @@ export default function ImageSlider({ images }: ImageSliderProps) {
       {/* Main image */}
       <div className="aspect-square overflow-hidden rounded-lg bg-muted relative">
         <img
-          src={images[currentIndex] || "/placeholder.svg"}
+          src={images[currentIndex]}
           alt="Product image"
           width={600}
           height={600}

@@ -13,6 +13,7 @@ import { headers } from "next/headers";
 import DeliveryTimeline from "../delivery-timeline";
 import ImageSlider from "../image-slider";
 import ReviewsSection from "../reviews-section";
+import FakeCountdownTimer from "./faker-timer";
 import ProductClient from "./productClient";
 
 export default async function ProductPage({
@@ -68,18 +69,29 @@ export default async function ProductPage({
 
   const stock = await obtenerStockTotalproduct(product?.id || "");
 
+  // ...existing code...
+
   const productImages = [
-    product?.imagenPrincipal || "/placeholder.svg",
+    // Solo incluir imagenPrincipal si existe y no está vacía
+    ...(product?.imagenPrincipal && product.imagenPrincipal.trim() !== ""
+      ? [product.imagenPrincipal]
+      : []),
+    // Filtrar imágenes de variaciones que no estén vacías
     ...product.variaciones.flatMap(
-      (variacion) => variacion.imagenes.map((img) => img.url) || []
+      (variacion) =>
+        variacion.imagenes
+          .map((img) => img.url)
+          .filter((url) => url && url.trim() !== "") || []
     ),
-  ];
+  ].filter(Boolean); // Filtro adicional para eliminar valores falsy
+
+  // ...existing code...
 
   const discountPercentage = Math.round(
     ((product.precioPromo - product.precio) / product.precioPromo) * 100
   );
 
-  const purchaseCount = 187;
+  const purchaseCount = 713;
 
   const recentBuyers = [
     { name: "María", verified: true },
@@ -247,7 +259,7 @@ export default async function ProductPage({
             <div className="text-center text-sm text-muted-foreground mt-2">
               <Clock className="inline-block mr-1 h-4 w-4" />
               Esta oferta termina en:{" "}
-              <span className="font-bold">23:59:42</span>
+              <span className="font-bold">{<FakeCountdownTimer />}</span>
             </div>
 
             <Separator className="my-6" />
