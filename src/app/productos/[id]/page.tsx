@@ -8,6 +8,7 @@ import {
   sendFacebookEvent,
   sendFacebookEventAdidas,
   sendFacebookEventNike,
+  sendFacebookEventSambas,
 } from "@/fb/action";
 import { headers } from "next/headers";
 import DeliveryTimeline from "../delivery-timeline";
@@ -109,6 +110,7 @@ export default async function ProductPage({
   const pixelConfig = {
     "adc458fe-ac01-49be-b004-e646dd2177ec": "adidas", // Adidas
     "aab267e9-da06-4c04-9405-866f7c06a3e9": "nike", // Nike/Sandalias
+    "5980f8e1-86d3-4a43-b068-0c74ea7668b5": "sambas", // Sambas
   } as const;
 
   // Enviar evento de PageView
@@ -121,6 +123,8 @@ export default async function ProductPage({
       await sendFacebookEventAdidas("PageView", productUrl, ip, userAgent);
     } else if (pixelType === "nike") {
       await sendFacebookEventNike("PageView", productUrl, ip, userAgent);
+    } else if (pixelType === "sambas") {
+      await sendFacebookEventSambas("PageView", productUrl, ip, userAgent);
     } else {
       // Producto genérico - usar píxel por defecto
       await sendFacebookEvent("PageView", productUrl, ip, userAgent);

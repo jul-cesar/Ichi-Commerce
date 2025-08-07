@@ -118,6 +118,11 @@ export async function sendPurchaseEvent(
         "https://www.chgroup.store/productos/aab267e9-da06-4c04-9405-866f7c06a3e9";
       targetPixel = "nike";
     }
+    else if (productId === "5980f8e1-86d3-4a43-b068-0c74ea7668b5") {
+      eventUrl =
+        "https://www.chgroup.store/productos/5980f8e1-86d3-4a43-b068-0c74ea7668b5";
+      targetPixel = "sambas";
+    }
   }
 
   const customData: CustomData = {
@@ -148,6 +153,15 @@ export async function sendPurchaseEvent(
       case "nike":
         result = await sendFacebookEventToPixel(
           "1297697631699993",
+          "Purchase",
+          eventUrl,
+          ip,
+          userAgent,
+          customData
+        );
+        break;
+      case "sambas":
+        result = await sendFacebookEventSambas(
           "Purchase",
           eventUrl,
           ip,
@@ -294,6 +308,7 @@ export async function sendFacebookEventAdidas(
   );
 }
 
+
 export async function sendFacebookEventNike(
   eventName: string,
   url: string,
@@ -310,6 +325,25 @@ export async function sendFacebookEventNike(
     customData
   );
 }
+
+export async function sendFacebookEventSambas(
+  eventName: string,
+  url: string,
+  ip?: string,
+  userAgent?: string,
+  customData?: CustomData
+) {
+  return sendFacebookEventToPixel(
+    "3648920695412108",
+    eventName,
+    url,
+    ip,
+    userAgent,
+    customData
+  );
+}
+
+
 
 export async function sendFacebookEvent(
   eventName: string,
