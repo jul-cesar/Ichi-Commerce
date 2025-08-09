@@ -3,8 +3,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Star, ThumbsUp } from "lucide-react";
 
-// ...existing code...
-
 const sandalsReviews = [
   {
     id: 1,
@@ -68,7 +66,67 @@ const sandalsReviews = [
   },
 ];
 
-// ...existing code...
+const sambaReviews = [
+  {
+    id: 1,
+    name: "Miguel Herrera",
+    avatar: "/placeholder.svg?height=40&width=40",
+    date: "hace 2 días",
+    rating: 5,
+    verified: true,
+    content:
+      "Los Adidas Samba son increíbles. La calidad de construcción es excelente, muy cómodos para uso diario y el diseño clásico nunca pasa de moda. Perfectos para entrenar o para un look casual.",
+    likes: 45,
+    images: [],
+  },
+  {
+    id: 2,
+    name: "David Morales",
+    avatar: "/placeholder.svg?height=40&width=40",
+    date: "hace 5 días",
+    rating: 5,
+    verified: true,
+    content:
+      "Estos Samba son auténticos. La suela de goma es perfecta para fútbol sala y el cuero es de primera calidad. Ya llevo 3 meses usándolos y siguen como nuevos. Totalmente recomendados.",
+    likes: 38,
+    images: [],
+  },
+  {
+    id: 3,
+    name: "Roberto Silva",
+    avatar: "/placeholder.svg?height=40&width=40",
+    date: "hace 1 semana",
+    rating: 4,
+    verified: true,
+    content: "Muy buenos tenis, cómodos y versátiles.",
+    likes: 22,
+    images: [],
+  },
+  {
+    id: 4,
+    name: "Alejandro Ruiz",
+    avatar: "/placeholder.svg?height=40&width=40",
+    date: "hace 2 semanas",
+    rating: 5,
+    verified: true,
+    content:
+      "Son mis terceros Samba y como siempre, Adidas no decepciona. La calidad es consistente, duran mucho tiempo y combinan con todo. Excelente relación calidad-precio.",
+    likes: 31,
+    images: [],
+  },
+  {
+    id: 5,
+    name: "Fernando Castillo",
+    avatar: "/placeholder.svg?height=40&width=40",
+    date: "hace 3 semanas",
+    rating: 5,
+    verified: true,
+    content:
+      "Clásicos atemporales. Los Samba nunca fallan, son cómodos desde el primer día y la suela tiene excelente agarre. Ideales tanto para deportes como para uso casual diario.",
+    likes: 27,
+    images: [],
+  },
+];
 
 const reviewsGenerales = [
   {
@@ -115,10 +173,13 @@ export default function ReviewsSection({
 }) {
   console.log("Product Name:", productName);
   // Determine which reviews to show based on the product name
+  const productNameLower = productName.trim().toLowerCase();
   const reviews =
-    productName.trim().toLowerCase() === "sandalias roma"
+    productNameLower === "sandalias roma"
       ? sandalsReviews
-      : reviewsGenerales;
+      : productNameLower === "Tenis Samba Adidas"
+        ? sambaReviews
+        : reviewsGenerales;
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
