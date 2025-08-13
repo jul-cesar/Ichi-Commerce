@@ -334,7 +334,7 @@ export async function sendFacebookEventSambas(
   customData?: CustomData
 ) {
   return sendFacebookEventToPixel(
-    "3648920695412108",
+    "2217942608719551",
     eventName,
     url,
     ip,
