@@ -1,7 +1,9 @@
 import {
   sendFacebookEvent,
   sendFacebookEventAdidas,
-  sendFacebookEventNike
+  sendFacebookEventNike,
+  sendFacebookEventSambas,
+  sendFacebookEventYeezy
 } from "@/fb/action";
 import { NextResponse } from "next/server";
 
@@ -35,6 +37,30 @@ export async function POST(req: Request) {
     if (url.includes("aab267e9-da06-4c04-9405-866f7c06a3e9")) {
       console.log("Enviando evento a Facebook para Nike/Sandalias");
       const response = await sendFacebookEventNike(
+        eventName,
+        url,
+        ip,
+        userAgent,
+        { value, currency }
+      );
+      return NextResponse.json(response);
+    }
+
+    if (url.includes("5980f8e1-86d3-4a43-b068-0c74ea7668b5")) {
+      console.log("Enviando evento a Facebook para Sambas");
+      const response = await sendFacebookEventSambas(
+        eventName,
+        url,
+        ip,
+        userAgent,
+        { value, currency }
+      );
+      return NextResponse.json(response);
+    }
+
+    if (url.includes("4f8be720-cf6a-491b-ba98-282c32599cbb")) {
+      console.log("Enviando evento a Facebook para Yeezy");
+      const response = await sendFacebookEventYeezy(
         eventName,
         url,
         ip,

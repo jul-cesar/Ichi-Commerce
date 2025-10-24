@@ -118,7 +118,11 @@ export async function sendPurchaseEvent(
         "https://www.chgroup.store/productos/aab267e9-da06-4c04-9405-866f7c06a3e9";
       targetPixel = "nike";
     }
-    else if (productId === "5980f8e1-86d3-4a43-b068-0c74ea7668b5") {
+    if (productId === "4f8be720-cf6a-491b-ba98-282c32599cbb") {
+      eventUrl =
+        "https://www.chgroup.store/productos/4f8be720-cf6a-491b-ba98-282c32599cbb";
+      targetPixel = "yeezy";
+    } else if (productId === "5980f8e1-86d3-4a43-b068-0c74ea7668b5") {
       eventUrl =
         "https://www.chgroup.store/productos/5980f8e1-86d3-4a43-b068-0c74ea7668b5";
       targetPixel = "sambas";
@@ -162,6 +166,16 @@ export async function sendPurchaseEvent(
         break;
       case "sambas":
         result = await sendFacebookEventSambas(
+          "Purchase",
+          eventUrl,
+          ip,
+          userAgent,
+          customData
+        );
+        break;
+      case "yeezy":
+        result = await sendFacebookEventToPixel(
+          "1324662722469315",
           "Purchase",
           eventUrl,
           ip,
@@ -343,7 +357,22 @@ export async function sendFacebookEventSambas(
   );
 }
 
-
+export async function sendFacebookEventYeezy(
+  eventName: string,
+  url: string,
+  ip?: string,
+  userAgent?: string,
+  customData?: CustomData
+) {
+  return sendFacebookEventToPixel(
+    "1324662722469315",
+    eventName,
+    url,
+    ip,
+    userAgent,
+    customData
+  );
+}
 
 export async function sendFacebookEvent(
   eventName: string,
@@ -376,6 +405,7 @@ export async function sendFacebookEventToAll(
     sendFacebookEventAdidas(eventName, url, ip, userAgent, customData),
     sendFacebookEventNike(eventName, url, ip, userAgent, customData),
     sendFacebookEvent(eventName, url, ip, userAgent, customData),
+    sendFacebookEventYeezy(eventName, url, ip, userAgent, customData),
   ]);
 
   return results;

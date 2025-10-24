@@ -49,6 +49,7 @@ export default function RootLayout({
               fbq('init', '1297697631699993');
               fbq('init', '1252332409762588');
               fbq('init', '1004413738502227');
+              fbq('init', '1324662722469315');
               fbq('track', 'PageView');
             `,
           }}
@@ -59,6 +60,14 @@ export default function RootLayout({
             width="1"
             style={{ display: "none" }}
             src="https://www.facebook.com/tr?id=1297697631699993&ev=PageView&noscript=1"
+          />
+        </noscript>
+        <noscript>
+          <img
+            height="1"
+            width="1"
+            style={{ display: "none" }}
+            src="https://www.facebook.com/tr?id=1324662722469315&ev=PageView&noscript=1"
           />
         </noscript>
         <noscript>
